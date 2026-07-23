@@ -1,0 +1,16 @@
+{
+  "drawings": [
+    {
+      "id": "submarine",
+      "file": "json/submarine.json",
+      "title": "Instellarms 'Shield' Submarine — Deck Plan",
+      "description": "Pressure hull with bow and stern domes, bulkhead door, and crew chairs."
+    },
+    {
+      "id": "tower",
+      "file": "json/tower.json",
+      "title": "Station Tower — Level 3",
+      "description": "Modular space station tower level — offices, conference room, observation deck."
+    }
+  ]
+}
