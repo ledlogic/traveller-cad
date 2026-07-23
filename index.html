@@ -4,343 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Starship CAD</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
-
-  :root{
-    --bg-void:#11161a;
-    --bg-panel:#171f23;
-    --bg-console:#0d1215;
-    --bg-canvas-wrap:#151c20;
-    --ink-teal:#49a586;
-    --ink-teal-bright:#5fc9a6;
-    --ink-teal-dim:#284d41;
-    --hairline:#25302f;
-    --hairline-bright:#33423f;
-    --text-primary:#e8efec;
-    --text-muted:#7f938c;
-    --text-faint:#4c5c58;
-    --error:#d9776a;
-    --amber:#d1a24a;
-    --paper:#ffffff;
-    --grid-line:#cfd6d2;
-    --wall-color:#1e4a3d;
-    --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-    --title-font: Optima, Candara, 'Noto Serif', Georgia, serif;
-  }
-
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; }
-  body{
-    margin:0;
-    background:var(--bg-void);
-    color:var(--text-primary);
-    font-family:var(--mono);
-    -webkit-font-smoothing:antialiased;
-  }
-
-  .app{
-    display:flex;
-    flex-direction:column;
-    height:100vh;
-  }
-
-  /* ---------- Header ---------- */
-  .headerbar{
-    display:flex;
-    align-items:center;
-    gap:18px;
-    padding:10px 18px;
-    background:var(--bg-panel);
-    border-bottom:1px solid var(--hairline);
-    flex-shrink:0;
-  }
-  .brand{
-    display:flex;
-    align-items:baseline;
-    gap:8px;
-    color:var(--text-faint);
-    font-size:11px;
-    letter-spacing:0.14em;
-    white-space:nowrap;
-  }
-  .brand b{ color:var(--ink-teal-bright); font-weight:600; }
-  .doc-title-wrap{
-    flex:1;
-    min-width:0;
-    border-left:1px solid var(--hairline);
-    border-right:1px solid var(--hairline);
-    padding:0 18px;
-  }
-  .doc-title{
-    font-family:var(--title-font);
-    font-style:italic;
-    font-weight:700;
-    font-size:22px;
-    color:var(--text-primary);
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .doc-meta{
-    margin-top:2px;
-    font-size:10.5px;
-    color:var(--text-faint);
-    letter-spacing:0.04em;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .doc-meta span{ color:var(--text-muted); }
-
-  .toolbar{ display:flex; gap:8px; flex-shrink:0; }
-  .btn{
-    appearance:none;
-    background:transparent;
-    border:1px solid var(--hairline-bright);
-    color:var(--text-muted);
-    font-family:var(--mono);
-    font-size:11px;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    padding:8px 12px;
-    border-radius:3px;
-    cursor:pointer;
-    transition:border-color .15s ease, color .15s ease, background .15s ease;
-    white-space:nowrap;
-  }
-  .btn:hover{ border-color:var(--ink-teal); color:var(--text-primary); }
-  .btn:active{ background:var(--ink-teal-dim); }
-  .btn.primary{ border-color:var(--ink-teal); color:var(--ink-teal-bright); }
-  .btn.primary:hover{ background:var(--ink-teal-dim); color:#fff; }
-  .btn.confirm{ border-color:var(--error); color:var(--error); }
-  .btn.active{ border-color:var(--error); color:var(--error); background:rgba(217,119,106,0.1); }
-  input[type=file]{ display:none; }
-
-  /* ---------- Body split ---------- */
-  .body{
-    flex:1;
-    display:flex;
-    min-height:0;
-  }
-
-  /* ---------- Console (left) ---------- */
-  .console{
-    width:420px;
-    min-width:300px;
-    max-width:55vw;
-    display:flex;
-    flex-direction:column;
-    border-right:1px solid var(--hairline);
-    background:var(--bg-panel);
-  }
-  .console-label{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 14px;
-    font-size:10.5px;
-    letter-spacing:0.14em;
-    color:var(--text-faint);
-    border-bottom:1px solid var(--hairline);
-    text-transform:uppercase;
-  }
-  .console-label .status-dot{
-    width:6px; height:6px; border-radius:50%;
-    background:var(--ink-teal); display:inline-block; margin-right:6px;
-    box-shadow:0 0 6px var(--ink-teal);
-  }
-  .console-label .status-dot.err{ background:var(--error); box-shadow:0 0 6px var(--error); }
-
-  .editor-wrap{
-    flex:1;
-    display:flex;
-    min-height:0;
-    background:var(--bg-console);
-    position:relative;
-  }
-  .gutter{
-    width:38px;
-    flex-shrink:0;
-    padding:12px 0;
-    text-align:right;
-    color:var(--text-faint);
-    font-size:12px;
-    line-height:19px;
-    overflow:hidden;
-    user-select:none;
-    border-right:1px solid var(--hairline);
-  }
-  .gutter div{ padding-right:8px; }
-  textarea#script{
-    flex:1;
-    resize:none;
-    border:none;
-    outline:none;
-    background:transparent;
-    color:var(--text-primary);
-    font-family:var(--mono);
-    font-size:12.5px;
-    line-height:19px;
-    padding:12px 12px;
-    tab-size:2;
-    white-space:pre;
-    overflow:auto;
-  }
-
-  .console-footer{
-    border-top:1px solid var(--hairline);
-    padding:10px 14px 12px;
-    flex-shrink:0;
-  }
-  .render-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-  .hint{ font-size:10px; color:var(--text-faint); letter-spacing:.03em; }
-
-  .log{
-    max-height:130px;
-    overflow-y:auto;
-    font-size:11px;
-    line-height:1.6;
-  }
-  .log .ok{ color:var(--text-faint); }
-  .log .err-line{ color:var(--error); }
-  .log .err-line b{ color:#fff; font-weight:600; }
-
-  /* ---------- Reference strip ---------- */
-  .reference{
-    border-top:1px solid var(--hairline);
-    flex-shrink:0;
-  }
-  .reference summary{
-    cursor:pointer;
-    padding:9px 14px;
-    font-size:10.5px;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color:var(--text-faint);
-    list-style:none;
-    display:flex;
-    align-items:center;
-    gap:6px;
-  }
-  .reference summary::-webkit-details-marker{ display:none; }
-  .reference summary:before{ content:'▸'; color:var(--ink-teal); }
-  .reference[open] summary:before{ content:'▾'; }
-  .reference-body{
-    padding:0 14px 14px;
-    font-size:11px;
-    color:var(--text-muted);
-    line-height:1.7;
-    max-height:220px;
-    overflow-y:auto;
-  }
-  .reference-body code{ color:var(--ink-teal-bright); }
-  .reference-body .ex{ display:block; color:var(--text-faint); margin:2px 0 8px 0; padding-left:2px; border-left:2px solid var(--hairline-bright); padding-left:8px;}
-
-  /* ---------- Canvas panel (right) ---------- */
-  .stage{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    min-width:0;
-    background:var(--bg-canvas-wrap);
-  }
-  .canvas-frame{
-    flex:1;
-    margin:22px;
-    position:relative;
-    border:1px solid var(--hairline-bright);
-    background:transparent;
-  }
-  .canvas-frame:before, .canvas-frame:after,
-  .canvas-frame .tick-br, .canvas-frame .tick-bl{
-    content:'';
-    position:absolute;
-    width:14px; height:14px;
-    pointer-events:none;
-  }
-  .canvas-frame:before{ /* top-left */
-    top:-1px; left:-1px;
-    border-top:2px solid var(--ink-teal);
-    border-left:2px solid var(--ink-teal);
-  }
-  .canvas-frame:after{ /* top-right */
-    top:-1px; right:-1px;
-    border-top:2px solid var(--ink-teal);
-    border-right:2px solid var(--ink-teal);
-  }
-  .tick-bl{
-    bottom:-1px; left:-1px;
-    border-bottom:2px solid var(--ink-teal);
-    border-left:2px solid var(--ink-teal);
-  }
-  .tick-br{
-    bottom:-1px; right:-1px;
-    border-bottom:2px solid var(--ink-teal);
-    border-right:2px solid var(--ink-teal);
-  }
-
-  /* midpoint ticks on each edge */
-  .tick-tm, .tick-bm, .tick-ml, .tick-mr{
-    position:absolute;
-    pointer-events:none;
-    background:var(--ink-teal);
-  }
-  .tick-tm{ top:-1px;    left:50%; transform:translateX(-50%); width:1px; height:8px; }
-  .tick-bm{ bottom:-1px; left:50%; transform:translateX(-50%); width:1px; height:8px; }
-  .tick-ml{ left:-1px;   top:50%;  transform:translateY(-50%); height:1px; width:8px; }
-  .tick-mr{ right:-1px;  top:50%;  transform:translateY(-50%); height:1px; width:8px; }
-
-  /* center crosshair */
-  .crosshair-h, .crosshair-v{
-    position:absolute;
-    pointer-events:none;
-    background:var(--ink-teal);
-    opacity:0.28;
-  }
-  .crosshair-h{ top:50%; left:50%; transform:translate(-50%,-50%); width:18px; height:1px; }
-  .crosshair-v{ top:50%; left:50%; transform:translate(-50%,-50%); width:1px; height:18px; }
-  #canvasHost{ position:absolute; inset:0; }
-  canvas#stage-canvas{ position:absolute; top:0; left:0; width:100%; height:100%; cursor:crosshair; }
-
-  .hud{
-    position:absolute;
-    right:10px;
-    bottom:8px;
-    font-size:10.5px;
-    color:var(--text-faint);
-    background:rgba(13,18,21,0.72);
-    padding:3px 8px;
-    border-radius:3px;
-    pointer-events:none;
-    letter-spacing:.02em;
-  }
-  .hud b{ color:var(--ink-teal-bright); font-weight:600; }
-
-  .statusline{
-    flex-shrink:0;
-    display:flex;
-    justify-content:space-between;
-    padding:8px 22px 16px;
-    font-size:10.5px;
-    color:var(--text-faint);
-    letter-spacing:.03em;
-  }
-  .statusline span{ color:var(--text-muted); }
-
-  /* scrollbars */
-  ::-webkit-scrollbar{ width:9px; height:9px; }
-  ::-webkit-scrollbar-track{ background:transparent; }
-  ::-webkit-scrollbar-thumb{ background:var(--hairline-bright); border-radius:5px; }
-  ::-webkit-scrollbar-thumb:hover{ background:var(--ink-teal-dim); }
-
-  @media (max-width: 860px){
-    .body{ flex-direction:column; }
-    .console{ width:100%; max-width:none; height:46vh; border-right:none; border-bottom:1px solid var(--hairline); }
-    .doc-title-wrap{ padding:0 10px; }
-    .brand{ display:none; }
-  }
-</style>
+<link rel="stylesheet" href="css/cad.css">
 </head>
 <body>
 <div class="app">
@@ -1511,7 +1175,7 @@ place: chair_rect,  -6,  0, 1, 180
     syncGutter();
   }
 
-  // Write angle back to the nth place: line
+  // Write angle back to the nth place: line — always writes name, x, y, scale, angle
   function syncPlacementAngle(idx){
     const p = currentDoc.placements[idx];
     const angleDeg = r2(p.angle * 180 / Math.PI);
@@ -1521,15 +1185,8 @@ place: chair_rect,  -6,  0, 1, 180
       const t = lines[i].trim().toLowerCase();
       if (t.startsWith('place:')||t.startsWith('place ')){
         if (found === idx){
-          // Match: place: name, x, y [, scale [, angle]]
-          const m = lines[i].match(/^(\s*place\s*:?\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*,\s*)(-?\d+(?:\.\d+)?)(\s*,\s*)(-?\d+(?:\.\d+)?)((\s*,\s*)(-?\d+(?:\.\d+)?))?((\s*,\s*)(-?\d+(?:\.\d+)?))?(.*)$/i);
-          if (m){
-            const scale = m[9] !== undefined ? m[9] : '1';
-            const sep1 = m[8] || ', ';
-            const sep2 = m[12] || ', ';
-            const tail = m[14] || '';
-            lines[i] = `${m[1]}${m[2]}${m[3]}${r2(p.x)}${m[5]}${r2(p.y)}${sep1}${scale}${sep2}${angleDeg}${tail}`;
-          }
+          const sc = r2(p.scale || 1);
+          lines[i] = `place: ${p.name}, ${r2(p.x)}, ${r2(p.y)}, ${sc}, ${angleDeg}`;
           break;
         }
         found++;
@@ -1691,6 +1348,19 @@ place: chair_rect,  -6,  0, 1, 180
 
     if (e.key === 'Escape'){
       selectedIndices = new Set();
+      renderCanvas();
+    }
+
+    if (e.key === 'q' || e.key === 'Q'){
+      if (!selectedIndices.size) return;
+      e.preventDefault();
+      const snap = 0.75;
+      for (const idx of selectedIndices){
+        const p = currentDoc.placements[idx];
+        p.x = Math.round(p.x / snap) * snap;
+        p.y = Math.round(p.y / snap) * snap;
+        syncPlacementXY(idx);
+      }
       renderCanvas();
     }
   });
