@@ -391,11 +391,16 @@
           <span class="ex"><code>world: x1, y1, x2, y2</code><br>Defines the real-world bounding box shown on the drafting surface.</span>
           <span class="ex"><code>grid: 1.5</code><br>Optional. Spacing of the structure grid, default 1.5.</span>
           <span class="ex"><code>wallwidth: 0.2</code><br>Optional. Default wall/outline thickness, default 0.2.</span>
+          <span class="ex"><code>featurethickness: 0.1</code><br>Optional. Line thickness used for feature details like door panel outlines, default 0.1 m.</span>
+          <span class="ex"><code>wallcolor: #22574A</code><br>Optional. Sets the wall/outline/label colour for all shapes that follow. Use 3- or 6-digit hex. Per-shape override: append <code>#hex</code> at the end of any <code>rect</code>, <code>oval</code>, <code>semicircle</code>, or <code>wall</code> line.</span>
           <span class="ex"><code>rect: x1, y1, x2, y2</code><br>Draws a rectangular structure — white fill, gridded, outlined.</span>
           <span class="ex"><code>oval: x1, y1, x2, y2</code><br>Draws an elliptical structure inside the given bounding box.</span>
           <span class="ex"><code>semicircle: x1, y1, x2, y2, direction [flags]</code><br>Half-ellipse structure. Direction is which side the <em>flat edge</em> faces: <code>left</code> <code>right</code> <code>top</code> <code>bottom</code>. Optional flags: <code>noflatwall</code> suppresses the closing straight edge; <code>noleftwall</code> <code>norightwall</code> <code>notopwall</code> <code>nobottomwall</code> suppress individual sides; <code>nowall</code> suppresses all outlines.</span>
           <span class="ex"><code>wall: x1, y1, x2, y2 [, width]</code><br>Draws a thick structural line. Optional 5th value overrides thickness.</span>
+          <span class="ex"><code>door: x1, y1, x2, y2</code><br>Sliding door — draws a wall-thickness line between the two endpoints, then a hollow panel rectangle centred on the wall, inset 0.3 m from each end and slightly thicker than the wall. Works at any angle.</span>
           <span class="ex"><code>label: x1, y1, x2, y2, text</code><br>Centers TEXT (auto-uppercased) inside the box. <b>Box height controls font size</b> — use the same height on all labels for consistent sizing. <code>text:</code> works too.</span>
+          <span class="ex"><code>place: componentName, x, y [, scale [, angle]]</code><br>Places a component at world position (x,y). Optional scale (default 1) and rotation angle in degrees CCW from +X axis (default 0, facing up = 90°). Built-in: <code>chair_rect</code>.</span>
+          <span class="ex"><code>@component myName … @end</code><br>Defines a reusable component in local coords (origin at centre). Supports <code>rect</code>, <code>oval</code>, <code>wall</code>, <code>label</code> inside.</span>
           <span class="ex"><code># comment</code> or <code>// comment</code><br>Ignored.</span>
         </div>
       </details>
@@ -426,10 +431,20 @@
 
   /* ============================= constants ============================= */
   const WALL_COLOR = '#1e4a3d';
+  const DEFAULT_WALL_COLOR = WALL_COLOR;
+
+  function parseHex(s){
+    const h = s.trim().replace(/^#/,'');
+    if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(h))
+      throw new Error(`"#${h}" is not a valid hex colour (e.g. #22574A or #900)`);
+    return '#' + h;
+  }
   const GRID_COLOR = '#cfd6d2';
   const PAPER_COLOR = '#ffffff';
   const DEFAULT_GRID = 1.5;
   const DEFAULT_WALL_WIDTH = 0.2;
+  const DEFAULT_FEATURE_THICKNESS = 0.1;
+  const DEFAULT_COMPONENT_THICKNESS = 0.03;  // line width for component shapes in world units
   const LABEL_FONT = '"Univers Normal"';
   const LABEL_WEIGHT = '300';
 
@@ -439,10 +454,9 @@ units: m
 world: -28, -12, 28, 12
 grid: 1.5
 wallwidth: 0.25
-
+wallcolor: #1e4a3d
 # bow dome — flat right, dome opens left
 semicircle: -22, -6, -10, 6, right, noflatwall
-
 # main pressure hull — nowall so rect edges don't show,
 # only the explicit top/bottom wall lines do
 rect: -16, -6, 4, 6, nowall
@@ -451,10 +465,31 @@ wall: -16, 6, 3, 6
 wall: -16, -6, 3, -6
 # stern dome — flat left, dome opens right
 semicircle: -6, -6, 12, 6, left, noflatwall
-label: -22, -1, -16, 1, Bow
-label: -16, -1, 3, 1, Pressure Hull
-label: 2, -1, 12, 1, Stern
+label: -26, -1, -22, 1, Bow
+label: -16, 6, 3, 8, Pressure Hull
+label: 12, -1, 16, 1, Stern
+wall: -16.5,6,-16.5,-6
+# sliding door in the bulkhead wall
+door: -16.5, 1.5, -16.5, -1.5
 
+# ── component definitions ───────────────────────────────────────────
+# chair_rect: ~0.5m square. origin at centre. back faces +Y at angle=0.
+@component chair_rect
+  # seat body
+  rect: -0.22, -0.22, 0.22, 0.22
+  # backrest (thick bar at top)
+  rect: -0.22,  0.22,  0.22, 0.32
+  # left armrest
+  rect: -0.30, -0.10, -0.22, 0.22
+  # right armrest
+  rect:  0.22, -0.10,  0.30, 0.22
+@end
+
+# ── place: name, x, y, scale, angleDeg ──────────────────────────────
+# 90=back toward +Y (up), 0=back toward +X (right), 270=back toward -Y (down)
+place: chair_rect, -10,  3, 1, 90
+place: chair_rect, -10, -3, 1, 270
+place: chair_rect,  -6,  0, 1, 180
 `;
 
   /* ============================= state ============================= */
@@ -493,7 +528,7 @@ label: 2, -1, 12, 1, Stern
     btnZoomReset: document.getElementById('btnZoomReset'),
     fileInput: document.getElementById('fileInput'),
   };
-  const ctx = el.canvas.getContext('2d');
+  let ctx = el.canvas.getContext('2d');
 
   /* ============================= parser ============================= */
   function parseNumbers(str, count){
@@ -507,11 +542,80 @@ label: 2, -1, 12, 1, Stern
   }
 
   function parseScript(text){
-    const doc = { title:'', units:'', world:null, gridSize:DEFAULT_GRID, wallWidth:DEFAULT_WALL_WIDTH, shapes:[] };
+    const doc = { title:'', units:'', world:null, gridSize:DEFAULT_GRID, wallWidth:DEFAULT_WALL_WIDTH, featureThickness:DEFAULT_FEATURE_THICKNESS, componentThickness:DEFAULT_COMPONENT_THICKNESS, wallColor:DEFAULT_WALL_COLOR, shapes:[], components:{}, placements:[] };
     const errors = [];
     const lines = text.split('\n');
 
-    lines.forEach((raw, idx) => {
+    // ── first pass: extract component blocks ──────────────────────────
+    // component blocks are:
+    //   @component name
+    //   ... shape commands in local coords ...
+    //   @end
+    const scriptLines = [];
+    let inComponent = null, componentLines = [];
+    for (const raw of lines){
+      const trimmed = raw.trim();
+      if (trimmed.toLowerCase().startsWith('@component')){
+        const name = trimmed.split(/\s+/).slice(1).join('_').toLowerCase();
+        inComponent = name;
+        componentLines = [];
+      } else if (trimmed.toLowerCase() === '@end' && inComponent){
+        doc.components[inComponent] = componentLines.join('\n');
+        inComponent = null;
+        componentLines = [];
+      } else if (inComponent){
+        componentLines.push(raw);
+      } else {
+        scriptLines.push(raw);
+      }
+    }
+
+    // ── parse component shape lists (using a lightweight sub-parser) ──
+    function parseComponentShapes(text){
+      const shapes = [];
+      for (const raw of text.split('\n')){
+        const line = raw.trim();
+        if (!line || line.startsWith('#') || line.startsWith('//')) continue;
+        const m = line.match(/^([A-Za-z_]+)\s*:?\s*(.*)$/);
+        if (!m) continue;
+        const key = m[1].toLowerCase(), rest = m[2].trim();
+        try {
+          if (key === 'rect'){
+            const n = parseNumbers(rest, 4);
+            const nowall = /\bnowall\b/i.test(rest);
+            const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+            shapes.push({ type:'rect', x1:n[0],y1:n[1],x2:n[2],y2:n[3], nowall, color: cm?parseHex(cm[1]):null });
+          } else if (key === 'wall'){
+            const n = parseNumbers(rest, 4);
+            const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+            shapes.push({ type:'wall', x1:n[0],y1:n[1],x2:n[2],y2:n[3], color: cm?parseHex(cm[1]):null });
+          } else if (key === 'oval'){
+            const n = parseNumbers(rest, 4);
+            const nowall = /\bnowall\b/i.test(rest);
+            const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+            shapes.push({ type:'oval', x1:n[0],y1:n[1],x2:n[2],y2:n[3], nowall, color: cm?parseHex(cm[1]):null });
+          } else if (key === 'label' || key === 'text'){
+            const lm = rest.match(/^\s*(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)\s*,?\s*(.*)$/);
+            if (lm) shapes.push({ type:'label', x1:parseFloat(lm[1]),y1:parseFloat(lm[2]),x2:parseFloat(lm[3]),y2:parseFloat(lm[4]), text:lm[5].trim() });
+          }
+        } catch(e){ /* skip bad lines in components */ }
+      }
+      return shapes;
+    }
+
+    // Pre-parse all user-defined components
+    const parsedComponents = {};
+    for (const [name, src] of Object.entries(doc.components)){
+      parsedComponents[name] = parseComponentShapes(src);
+    }
+    // Merge built-in components
+    for (const [name, shapes] of Object.entries(BUILTIN_COMPONENTS)){
+      if (!parsedComponents[name]) parsedComponents[name] = shapes;
+    }
+    doc.parsedComponents = parsedComponents;
+
+    // ── second pass: parse main script ───────────────────────────────
+    scriptLines.forEach((raw, idx) => {
       const lineNum = idx + 1;
       const line = raw.trim();
       if (!line) return;
@@ -547,16 +651,37 @@ label: 2, -1, 12, 1, Stern
             doc.wallWidth = v;
             break;
           }
+          case 'wallcolor':
+          case 'wallcolour': {
+            doc.wallColor = parseHex(rest);
+            break;
+          }
+          case 'featurethickness': {
+            const v = parseFloat(rest);
+            if (Number.isNaN(v) || v <= 0) throw new Error(`featurethickness must be a positive number`);
+            doc.featureThickness = v;
+            break;
+          }
+          case 'componentthickness': {
+            const v = parseFloat(rest);
+            if (Number.isNaN(v) || v <= 0) throw new Error(`componentthickness must be a positive number`);
+            doc.componentThickness = v;
+            break;
+          }
           case 'rect': {
             const n = parseNumbers(rest, 4);
             const nowall = /\bnowall\b/i.test(rest);
-            doc.shapes.push({ type:'rect', x1:n[0], y1:n[1], x2:n[2], y2:n[3], nowall, lineNum });
+            const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+            const color = cm ? parseHex(cm[1]) : null;
+            doc.shapes.push({ type:'rect', x1:n[0], y1:n[1], x2:n[2], y2:n[3], nowall, color, lineNum });
             break;
           }
           case 'oval': {
             const n = parseNumbers(rest, 4);
             const nowall = /\bnowall\b/i.test(rest);
-            doc.shapes.push({ type:'oval', x1:n[0], y1:n[1], x2:n[2], y2:n[3], nowall, lineNum });
+            const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+            const color = cm ? parseHex(cm[1]) : null;
+            doc.shapes.push({ type:'oval', x1:n[0], y1:n[1], x2:n[2], y2:n[3], nowall, color, lineNum });
             break;
           }
           case 'semicircle':
@@ -571,10 +696,11 @@ label: 2, -1, 12, 1, Stern
             const noright   = nowall || /\bnorightwall\b/i.test(rest);
             const notop     = nowall || /\bnotopwall\b/i.test(rest);
             const nobottom  = nowall || /\bnobottomwall\b/i.test(rest);
-            // convenience: noflatwall suppresses whichever edge is the flat closing side
             const noflatwall = /\bnoflatwall\b/i.test(rest);
+            const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+            const color = cm ? parseHex(cm[1]) : null;
             doc.shapes.push({ type:'semicircle', x1:n[0], y1:n[1], x2:n[2], y2:n[3], dir,
-              nowall, noleft, noright, notop, nobottom, noflatwall, lineNum });
+              nowall, noleft, noright, notop, nobottom, noflatwall, color, lineNum });
             break;
           }
           case 'wall': {
@@ -585,13 +711,36 @@ label: 2, -1, 12, 1, Stern
               const w = parseFloat(parts[4]);
               if (!Number.isNaN(w) && w > 0) width = w;
             }
-            doc.shapes.push({ type:'wall', x1:n[0], y1:n[1], x2:n[2], y2:n[3], width, lineNum });
+            const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+            const color = cm ? parseHex(cm[1]) : null;
+            doc.shapes.push({ type:'wall', x1:n[0], y1:n[1], x2:n[2], y2:n[3], width, color, lineNum });
+            break;
+          }
+          case 'door': {
+            const n = parseNumbers(rest, 4);
+            const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+            const color = cm ? parseHex(cm[1]) : null;
+            doc.shapes.push({ type:'door', x1:n[0], y1:n[1], x2:n[2], y2:n[3], color, lineNum });
+            break;
+          }
+          case 'place': {
+            // place: componentName, x, y [, scale [, angleDeg]]
+            // x,y = world position of component origin
+            // scale = uniform scale factor (default 1)
+            // angleDeg = rotation CCW from +X axis (default 0)
+            const parts = rest.split(/[\s,]+/).filter(Boolean);
+            if (parts.length < 3) throw new Error(`expected: componentName, x, y [, scale [, angle]]`);
+            const name  = parts[0].toLowerCase();
+            const px    = parseFloat(parts[1]);
+            const py    = parseFloat(parts[2]);
+            const sc    = parts.length >= 4 ? parseFloat(parts[3]) : 1.0;
+            const angle = parts.length >= 5 ? parseFloat(parts[4]) * Math.PI / 180 : 0;
+            if (Number.isNaN(px)||Number.isNaN(py)) throw new Error(`invalid position`);
+            doc.placements.push({ name, x:px, y:py, scale:sc, angle, lineNum });
             break;
           }
           case 'label':
           case 'text': {
-            // first 4 numbers position the box; everything after is the label,
-            // so the text itself is free to contain commas/parentheses/etc.
             const m2 = rest.match(/^\s*(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)\s*,?\s*(.*)$/);
             if (!m2) throw new Error(`expected: x1, y1, x2, y2, text`);
             const text = m2[5].trim();
@@ -612,6 +761,89 @@ label: 2, -1, 12, 1, Stern
     });
 
     return { doc, errors };
+  }
+
+  /* ============================= built-in components ============================= */
+  // All coordinates in LOCAL space: origin at component centre, units = meters.
+  // chair_rect: ~0.5m wide, ~0.5m deep. Seat + back + two armrests.
+  // Facing "up" (+Y) at angle=0.
+  const BUILTIN_COMPONENTS = {
+    chair_rect: [
+      // seat — full square
+      { type:'rect', x1:-0.22, y1:-0.22, x2:0.22, y2:0.18, nowall:false },
+      // back rest — thin rect at top
+      { type:'rect', x1:-0.22, y1: 0.18, x2:0.22, y2:0.27, nowall:false },
+      // left arm
+      { type:'rect', x1:-0.27, y1:-0.15, x2:-0.22, y2:0.18, nowall:false },
+      // right arm
+      { type:'rect', x1: 0.22, y1:-0.15, x2:0.27, y2:0.18, nowall:false },
+    ],
+  };
+
+  /* ============================= component rendering ============================= */
+  function drawPlacements(placements, parsedComponents, toScreen, scale, wallWidth, wallColor, featureThickness, componentThickness){
+    const compLW = componentThickness || DEFAULT_COMPONENT_THICKNESS; // world units
+
+    for (const p of placements){
+      const shapes = parsedComponents[p.name];
+      if (!shapes){
+        const [sx, sy] = toScreen(p.x, p.y);
+        ctx.save();
+        ctx.strokeStyle = '#e05050'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(sx-8,sy-8); ctx.lineTo(sx+8,sy+8);
+        ctx.moveTo(sx+8,sy-8); ctx.lineTo(sx-8,sy+8);
+        ctx.stroke();
+        ctx.restore();
+        continue;
+      }
+
+      const sc = p.scale || 1;
+      ctx.save();
+      const [ox, oy] = toScreen(p.x, p.y);
+      ctx.translate(ox, oy);
+      ctx.rotate(-p.angle);
+      ctx.scale(sc * scale, sc * scale);
+
+      // Line width in LOCAL units — canvas transform handles the rest.
+      // Divide by scale to counteract the ctx.scale above so it stays in world units.
+      const lw = compLW;
+
+      for (const s of shapes){
+        const color = s.color || wallColor || WALL_COLOR;
+
+        if (s.type === 'rect'){
+          const x = Math.min(s.x1, s.x2), y = -Math.max(s.y1, s.y2);
+          const w = Math.abs(s.x2 - s.x1), h = Math.abs(s.y2 - s.y1);
+          ctx.fillStyle = PAPER_COLOR;
+          ctx.fillRect(x, y, w, h);
+          if (!s.nowall){
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lw;
+            ctx.lineCap = 'square';
+            ctx.lineJoin = 'miter';
+            ctx.strokeRect(x, y, w, h);
+          }
+        } else if (s.type === 'oval'){
+          const cx = (s.x1+s.x2)/2, cy = -((s.y1+s.y2)/2);
+          const rx = Math.abs(s.x2-s.x1)/2, ry = Math.abs(s.y2-s.y1)/2;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
+          ctx.fillStyle = PAPER_COLOR; ctx.fill();
+          if (!s.nowall){
+            ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
+          }
+        } else if (s.type === 'wall'){
+          ctx.strokeStyle = s.color || wallColor || WALL_COLOR;
+          ctx.lineWidth = lw; ctx.lineCap = 'square';
+          ctx.beginPath();
+          ctx.moveTo(s.x1, -s.y1); ctx.lineTo(s.x2, -s.y2);
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
   }
 
   /* ============================= rendering ============================= */
@@ -679,21 +911,84 @@ label: 2, -1, 12, 1, Stern
     // structures first (fill + grid + outline)
     currentDoc.shapes
       .filter(s => s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle')
-      .forEach(s => drawStructure(s, toScreen, scale, currentDoc.gridSize, currentDoc.wallWidth));
+      .forEach(s => drawStructure(s, toScreen, scale, currentDoc.gridSize, currentDoc.wallWidth, currentDoc.wallColor));
 
     // walls on top
     currentDoc.shapes
       .filter(s => s.type === 'wall')
-      .forEach(s => drawWall(s, toScreen, scale, currentDoc.wallWidth));
+      .forEach(s => drawWall(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor));
+
+    // doors on top of walls
+    currentDoc.shapes
+      .filter(s => s.type === 'door')
+      .forEach(s => drawDoor(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor, currentDoc.featureThickness));
 
     // labels on top of everything
     currentDoc.shapes
       .filter(s => s.type === 'label')
-      .forEach(s => drawLabel(s, toScreen, scale, hoverWx, hoverWy));
+      .forEach(s => drawLabel(s, toScreen, scale, hoverWx, hoverWy, currentDoc.wallColor));
+
+    // component placements
+    if (currentDoc.placements.length){
+      drawPlacements(currentDoc.placements, currentDoc.parsedComponents,
+                     toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor,
+                     currentDoc.featureThickness, currentDoc.componentThickness);
+    }
 
     // debug anchors
     if (showAnchors){
       currentDoc.shapes.forEach(s => drawAnchors(s, toScreen, hoverWx, hoverWy));
+      // component placement centres
+      currentDoc.placements.forEach(p => {
+        const [sx, sy] = toScreen(p.x, p.y);
+        const HOT_DIST = 18;
+        const hasHover = hoverWx !== null && viewport;
+        let hot = false;
+        if (hasHover){
+          const [hsx, hsy] = toScreen(hoverWx, hoverWy);
+          hot = Math.hypot(sx - hsx, sy - hsy) < HOT_DIST;
+        }
+        const SIZE = hot ? 10 : 7;
+        ctx.save();
+        ctx.strokeStyle = hot ? '#ff8080' : '#e05050';
+        ctx.lineWidth = hot ? 2 : 1.5;
+        // crosshair
+        ctx.beginPath();
+        ctx.moveTo(sx - SIZE, sy); ctx.lineTo(sx + SIZE, sy);
+        ctx.moveTo(sx, sy - SIZE); ctx.lineTo(sx, sy + SIZE);
+        ctx.stroke();
+        // small circle around centre
+        ctx.beginPath();
+        ctx.arc(sx, sy, SIZE * 0.45, 0, Math.PI * 2);
+        ctx.stroke();
+        // orientation arrow — points in direction of local +X axis (angle=0 faces right)
+        const arrowLen = SIZE * 2.2;
+        // local +X in screen space: rotate (1,0) by angle, then flip Y for canvas
+        const ax = Math.cos(p.angle);
+        const ay = Math.sin(p.angle);
+        // toScreen maps world, but we just need screen direction: +X is right, +Y is up (flipped)
+        const ex = sx + ax * arrowLen;
+        const ey = sy - ay * arrowLen; // subtract because canvas Y is flipped
+        ctx.save();
+        ctx.strokeStyle = hot ? '#ff8080' : '#e05050';
+        ctx.lineWidth = hot ? 2 : 1.5;
+        ctx.setLineDash([3, 2]);
+        ctx.beginPath();
+        ctx.moveTo(sx, sy); ctx.lineTo(ex, ey);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        // arrowhead
+        const headLen = 5, headAngle = 0.4;
+        const ang = Math.atan2(ey - sy, ex - sx);
+        ctx.beginPath();
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(ex - headLen * Math.cos(ang - headAngle), ey - headLen * Math.sin(ang - headAngle));
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(ex - headLen * Math.cos(ang + headAngle), ey - headLen * Math.sin(ang + headAngle));
+        ctx.stroke();
+        ctx.restore();
+        ctx.restore(); // outer save from crosshair
+      });
     }
 
     // status line
@@ -787,7 +1082,8 @@ label: 2, -1, 12, 1, Stern
     }
   }
 
-  function drawStructure(s, toScreen, scale, gridSize, wallWidth){
+  function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor){
+    const color = s.color || docWallColor || WALL_COLOR;
     ctx.save();
     shapePath(s, toScreen, scale);
     ctx.fillStyle = PAPER_COLOR;
@@ -800,7 +1096,6 @@ label: 2, -1, 12, 1, Stern
     ctx.restore();
 
     if (s.type === 'semicircle' && !s.nowall){
-      // Draw dome arc and flat edge as separate paths so each can be suppressed
       const [sx1, sy1] = toScreen(s.x1, s.y1);
       const [sx2, sy2] = toScreen(s.x2, s.y2);
       const left = Math.min(sx1,sx2), right = Math.max(sx1,sx2);
@@ -810,18 +1105,8 @@ label: 2, -1, 12, 1, Stern
       const dir = s.dir || 'right';
       const lw = Math.max(2, wallWidth * scale);
       ctx.lineWidth = lw;
-      ctx.strokeStyle = WALL_COLOR;
+      ctx.strokeStyle = color;
 
-      // dome arc
-      const suppressDome = (dir==='left'&&s.noleft) || (dir==='right'&&s.noright) ||
-                           (dir==='top'&&s.notop)   || (dir==='bottom'&&s.nobottom);
-      // flat closing edge (the straight line across the cut)
-      const suppressFlat = s.noflatwall ||
-                           (dir==='right'&&s.noright) || (dir==='left'&&s.noleft) ||
-                           (dir==='bottom'&&s.nobottom) || (dir==='top'&&s.notop);
-
-      // actually: dome is on the OPEN side, flat is on the named direction side
-      // dir = which side the flat edge faces
       const suppressDomeArc = (dir==='right'  && s.noleft)   ||
                                (dir==='left'   && s.noright)  ||
                                (dir==='bottom' && s.notop)    ||
@@ -849,7 +1134,7 @@ label: 2, -1, 12, 1, Stern
     } else if (!s.nowall){
       shapePath(s, toScreen, scale);
       ctx.lineWidth = Math.max(2, wallWidth * scale);
-      ctx.strokeStyle = WALL_COLOR;
+      ctx.strokeStyle = color;
       ctx.stroke();
     }
     ctx.restore();
@@ -875,12 +1160,13 @@ label: 2, -1, 12, 1, Stern
     }
   }
 
-  function drawWall(s, toScreen, scale, defaultWidth){
+  function drawWall(s, toScreen, scale, defaultWidth, docWallColor){
     const [sx1, sy1] = toScreen(s.x1, s.y1);
     const [sx2, sy2] = toScreen(s.x2, s.y2);
     const width = s.width || defaultWidth;
+    const color = s.color || docWallColor || WALL_COLOR;
     ctx.save();
-    ctx.strokeStyle = WALL_COLOR;
+    ctx.strokeStyle = color;
     ctx.lineWidth = Math.max(2.5, width * scale);
     ctx.lineCap = 'square';
     ctx.beginPath();
@@ -890,7 +1176,71 @@ label: 2, -1, 12, 1, Stern
     ctx.restore();
   }
 
-  function drawLabel(s, toScreen, scale, hoverWx, hoverWy){
+  function drawDoor(s, toScreen, scale, wallWidth, docWallColor, featureThickness){
+    const WALL_T  = wallWidth || 0.177;
+    const DOOR_T  = WALL_T * 1.51;        // panel half-thickness in world units
+    const INSET   = 0.3;
+    const FEAT_T  = featureThickness || DEFAULT_FEATURE_THICKNESS;
+    const color   = s.color || docWallColor || WALL_COLOR;
+
+    // Direction vector along the door
+    const dx = s.x2 - s.x1, dy = s.y2 - s.y1;
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-6) return;
+    const ux = dx / len, uy = dy / len;   // unit along door
+    const nx = -uy,  ny = ux;             // unit normal (perpendicular)
+
+    // ── 1. Wall line (full length, wall thickness) ──────────────────
+    const [sx1, sy1] = toScreen(s.x1, s.y1);
+    const [sx2, sy2] = toScreen(s.x2, s.y2);
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'square';
+    ctx.lineWidth = Math.max(2, WALL_T * scale);
+    ctx.beginPath();
+    ctx.moveTo(sx1, sy1); ctx.lineTo(sx2, sy2);
+    ctx.stroke();
+
+    // ── 2. Door panel hollow rect ────────────────────────────────────
+    // Panel runs from (inset along axis) to (len - inset along axis)
+    // and extends DOOR_T/2 on each side of the wall centre line
+    const half = DOOR_T / 2;
+
+    // Four corners in world space
+    const p = (t, side) => {
+      const wx = s.x1 + ux * t + nx * side;
+      const wy = s.y1 + uy * t + ny * side;
+      return toScreen(wx, wy);
+    };
+    const corners = [
+      p(INSET,       -half),
+      p(len - INSET, -half),
+      p(len - INSET,  half),
+      p(INSET,        half),
+    ];
+
+    ctx.fillStyle = PAPER_COLOR;
+    ctx.beginPath();
+    ctx.moveTo(...corners[0]);
+    corners.slice(1).forEach(c => ctx.lineTo(...c));
+    ctx.closePath();
+    ctx.fill();
+
+    // Outline the panel using featureThickness
+    ctx.lineWidth = Math.max(0.5, FEAT_T * scale);
+    ctx.lineCap = 'square';
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(...corners[0]);
+    corners.slice(1).forEach(c => ctx.lineTo(...c));
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
+    const baseColor = docWallColor || WALL_COLOR;
     const [sx1, sy1] = toScreen(s.x1, s.y1);
     const [sx2, sy2] = toScreen(s.x2, s.y2);
     const left = Math.min(sx1, sx2), right = Math.max(sx1, sx2);
@@ -922,7 +1272,7 @@ label: 2, -1, 12, 1, Stern
       ctx.setLineDash([]);
     }
 
-    ctx.fillStyle = hot ? '#ff8080' : WALL_COLOR;
+    ctx.fillStyle = hot ? '#ff8080' : baseColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `${LABEL_WEIGHT} ${fontSize}px ${LABEL_FONT}`;
@@ -945,7 +1295,7 @@ label: 2, -1, 12, 1, Stern
       points.push([s.x1, s.y1], [s.x2, s.y1], [s.x1, s.y2], [s.x2, s.y2]);
       points.push([cx, cy]);
       points.push([cx, s.y1], [cx, s.y2], [s.x1, cy], [s.x2, cy]);
-    } else if (s.type === 'wall'){
+    } else if (s.type === 'wall' || s.type === 'door'){
       points.push([s.x1, s.y1], [s.x2, s.y2]);
       points.push([(s.x1+s.x2)/2, (s.y1+s.y2)/2]);
     }
@@ -1215,7 +1565,59 @@ label: 2, -1, 12, 1, Stern
 
   el.btnPng.addEventListener('click', () => {
     if (!currentDoc || !currentDoc.world) return;
-    el.canvas.toBlob((blob) => {
+
+    const { x1, y1, x2, y2 } = currentDoc.world;
+    const worldW = x2 - x1, worldH = y2 - y1;
+    const TARGET_PX = 1800;
+    const exportScale = Math.min(TARGET_PX / worldW, TARGET_PX / worldH);
+    const pad = { top:40, right:24, bottom:24, left:48 };
+    const canvasW = Math.round(worldW * exportScale + pad.left + pad.right);
+    const canvasH = Math.round(worldH * exportScale + pad.top  + pad.bottom);
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width  = canvasW;
+    offscreen.height = canvasH;
+    const oc = offscreen.getContext('2d');
+    oc.fillStyle = '#ffffff';
+    oc.fillRect(0, 0, canvasW, canvasH);
+
+    const toScreen = (wx, wy) => [
+      pad.left + (wx - x1) * exportScale,
+      pad.top  + (y2 - wy) * exportScale,
+    ];
+
+    // Swap the active drawing context to the offscreen canvas
+    const savedCtx = ctx;
+    ctx = oc;
+
+    drawRulers(toScreen, x1, y1, x2, y2, exportScale,
+               pad.left, pad.top, worldW * exportScale, worldH * exportScale,
+               currentDoc.gridSize);
+
+    currentDoc.shapes
+      .filter(s => ['rect','oval','semicircle'].includes(s.type))
+      .forEach(s => drawStructure(s, toScreen, exportScale, currentDoc.gridSize,
+                                  currentDoc.wallWidth, currentDoc.wallColor));
+    currentDoc.shapes
+      .filter(s => s.type === 'wall')
+      .forEach(s => drawWall(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor));
+    currentDoc.shapes
+      .filter(s => s.type === 'door')
+      .forEach(s => drawDoor(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor, currentDoc.featureThickness));
+    currentDoc.shapes
+      .filter(s => s.type === 'label')
+      .forEach(s => drawLabel(s, toScreen, exportScale, null, null, currentDoc.wallColor));
+
+    if (currentDoc.placements.length){
+      drawPlacements(currentDoc.placements, currentDoc.parsedComponents,
+                     toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor,
+                     currentDoc.featureThickness, currentDoc.componentThickness);
+    }
+
+    // Restore live context
+    ctx = savedCtx;
+
+    offscreen.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
