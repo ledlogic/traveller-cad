@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starship CAD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg-void:#11161a;
+    --bg-panel:#171f23;
+    --bg-console:#0d1215;
+    --bg-canvas-wrap:#151c20;
+    --ink-teal:#49a586;
+    --ink-teal-bright:#5fc9a6;
+    --ink-teal-dim:#284d41;
+    --hairline:#25302f;
+    --hairline-bright:#33423f;
+    --text-primary:#e8efec;
+    --text-muted:#7f938c;
+    --text-faint:#4c5c58;
+    --error:#d9776a;
+    --amber:#d1a24a;
+    --paper:#ffffff;
+    --grid-line:#cfd6d2;
+    --wall-color:#1e4a3d;
+    --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --title-font: Optima, Candara, 'Noto Serif', Georgia, serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--bg-void);
+    color:var(--text-primary);
+    font-family:var(--mono);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .app{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+  }
+
+  /* ---------- Header ---------- */
+  .headerbar{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:10px 18px;
+    background:var(--bg-panel);
+    border-bottom:1px solid var(--hairline);
+    flex-shrink:0;
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    color:var(--text-faint);
+    font-size:11px;
+    letter-spacing:0.14em;
+    white-space:nowrap;
+  }
+  .brand b{ color:var(--ink-teal-bright); font-weight:600; }
+  .doc-title-wrap{
+    flex:1;
+    min-width:0;
+    border-left:1px solid var(--hairline);
+    border-right:1px solid var(--hairline);
+    padding:0 18px;
+  }
+  .doc-title{
+    font-family:var(--title-font);
+    font-style:italic;
+    font-weight:700;
+    font-size:22px;
+    color:var(--text-primary);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .doc-meta{
+    margin-top:2px;
+    font-size:10.5px;
+    color:var(--text-faint);
+    letter-spacing:0.04em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .doc-meta span{ color:var(--text-muted); }
+
+  .toolbar{ display:flex; gap:8px; flex-shrink:0; }
+  .btn{
+    appearance:none;
+    background:transparent;
+    border:1px solid var(--hairline-bright);
+    color:var(--text-muted);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:8px 12px;
+    border-radius:3px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{ border-color:var(--ink-teal); color:var(--text-primary); }
+  .btn:active{ background:var(--ink-teal-dim); }
+  .btn.primary{ border-color:var(--ink-teal); color:var(--ink-teal-bright); }
+  .btn.primary:hover{ background:var(--ink-teal-dim); color:#fff; }
+  .btn.confirm{ border-color:var(--error); color:var(--error); }
+  .btn.active{ border-color:var(--error); color:var(--error); background:rgba(217,119,106,0.1); }
+  input[type=file]{ display:none; }
+
+  /* ---------- Body split ---------- */
+  .body{
+    flex:1;
+    display:flex;
+    min-height:0;
+  }
+
+  /* ---------- Console (left) ---------- */
+  .console{
+    width:420px;
+    min-width:300px;
+    max-width:55vw;
+    display:flex;
+    flex-direction:column;
+    border-right:1px solid var(--hairline);
+    background:var(--bg-panel);
+  }
+  .console-label{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px;
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    color:var(--text-faint);
+    border-bottom:1px solid var(--hairline);
+    text-transform:uppercase;
+  }
+  .console-label .status-dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--ink-teal); display:inline-block; margin-right:6px;
+    box-shadow:0 0 6px var(--ink-teal);
+  }
+  .console-label .status-dot.err{ background:var(--error); box-shadow:0 0 6px var(--error); }
+
+  .editor-wrap{
+    flex:1;
+    display:flex;
+    min-height:0;
+    background:var(--bg-console);
+    position:relative;
+  }
+  .gutter{
+    width:38px;
+    flex-shrink:0;
+    padding:12px 0;
+    text-align:right;
+    color:var(--text-faint);
+    font-size:12px;
+    line-height:19px;
+    overflow:hidden;
+    user-select:none;
+    border-right:1px solid var(--hairline);
+  }
+  .gutter div{ padding-right:8px; }
+  textarea#script{
+    flex:1;
+    resize:none;
+    border:none;
+    outline:none;
+    background:transparent;
+    color:var(--text-primary);
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:19px;
+    padding:12px 12px;
+    tab-size:2;
+    white-space:pre;
+    overflow:auto;
+  }
+
+  .console-footer{
+    border-top:1px solid var(--hairline);
+    padding:10px 14px 12px;
+    flex-shrink:0;
+  }
+  .render-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .hint{ font-size:10px; color:var(--text-faint); letter-spacing:.03em; }
+
+  .log{
+    max-height:130px;
+    overflow-y:auto;
+    font-size:11px;
+    line-height:1.6;
+  }
+  .log .ok{ color:var(--text-faint); }
+  .log .err-line{ color:var(--error); }
+  .log .err-line b{ color:#fff; font-weight:600; }
+
+  /* ---------- Reference strip ---------- */
+  .reference{
+    border-top:1px solid var(--hairline);
+    flex-shrink:0;
+  }
+  .reference summary{
+    cursor:pointer;
+    padding:9px 14px;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    list-style:none;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .reference summary::-webkit-details-marker{ display:none; }
+  .reference summary:before{ content:'▸'; color:var(--ink-teal); }
+  .reference[open] summary:before{ content:'▾'; }
+  .reference-body{
+    padding:0 14px 14px;
+    font-size:11px;
+    color:var(--text-muted);
+    line-height:1.7;
+    max-height:220px;
+    overflow-y:auto;
+  }
+  .reference-body code{ color:var(--ink-teal-bright); }
+  .reference-body .ex{ display:block; color:var(--text-faint); margin:2px 0 8px 0; padding-left:2px; border-left:2px solid var(--hairline-bright); padding-left:8px;}
+
+  /* ---------- Canvas panel (right) ---------- */
+  .stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    background:var(--bg-canvas-wrap);
+  }
+  .canvas-frame{
+    flex:1;
+    margin:22px;
+    position:relative;
+    border:1px solid var(--hairline-bright);
+    background:transparent;
+  }
+  .canvas-frame:before, .canvas-frame:after,
+  .canvas-frame .tick-br, .canvas-frame .tick-bl{
+    content:'';
+    position:absolute;
+    width:14px; height:14px;
+    pointer-events:none;
+  }
+  .canvas-frame:before{ /* top-left */
+    top:-1px; left:-1px;
+    border-top:2px solid var(--ink-teal);
+    border-left:2px solid var(--ink-teal);
+  }
+  .canvas-frame:after{ /* top-right */
+    top:-1px; right:-1px;
+    border-top:2px solid var(--ink-teal);
+    border-right:2px solid var(--ink-teal);
+  }
+  .tick-bl{
+    bottom:-1px; left:-1px;
+    border-bottom:2px solid var(--ink-teal);
+    border-left:2px solid var(--ink-teal);
+  }
+  .tick-br{
+    bottom:-1px; right:-1px;
+    border-bottom:2px solid var(--ink-teal);
+    border-right:2px solid var(--ink-teal);
+  }
+
+  /* midpoint ticks on each edge */
+  .tick-tm, .tick-bm, .tick-ml, .tick-mr{
+    position:absolute;
+    pointer-events:none;
+    background:var(--ink-teal);
+  }
+  .tick-tm{ top:-1px;    left:50%; transform:translateX(-50%); width:1px; height:8px; }
+  .tick-bm{ bottom:-1px; left:50%; transform:translateX(-50%); width:1px; height:8px; }
+  .tick-ml{ left:-1px;   top:50%;  transform:translateY(-50%); height:1px; width:8px; }
+  .tick-mr{ right:-1px;  top:50%;  transform:translateY(-50%); height:1px; width:8px; }
+
+  /* center crosshair */
+  .crosshair-h, .crosshair-v{
+    position:absolute;
+    pointer-events:none;
+    background:var(--ink-teal);
+    opacity:0.28;
+  }
+  .crosshair-h{ top:50%; left:50%; transform:translate(-50%,-50%); width:18px; height:1px; }
+  .crosshair-v{ top:50%; left:50%; transform:translate(-50%,-50%); width:1px; height:18px; }
+  #canvasHost{ position:absolute; inset:0; }
+  canvas#stage-canvas{ position:absolute; top:0; left:0; width:100%; height:100%; cursor:crosshair; }
+
+  .hud{
+    position:absolute;
+    right:10px;
+    bottom:8px;
+    font-size:10.5px;
+    color:var(--text-faint);
+    background:rgba(13,18,21,0.72);
+    padding:3px 8px;
+    border-radius:3px;
+    pointer-events:none;
+    letter-spacing:.02em;
+  }
+  .hud b{ color:var(--ink-teal-bright); font-weight:600; }
+
+  .statusline{
+    flex-shrink:0;
+    display:flex;
+    justify-content:space-between;
+    padding:8px 22px 16px;
+    font-size:10.5px;
+    color:var(--text-faint);
+    letter-spacing:.03em;
+  }
+  .statusline span{ color:var(--text-muted); }
+
+  /* scrollbars */
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--hairline-bright); border-radius:5px; }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--ink-teal-dim); }
+
+  @media (max-width: 860px){
+    .body{ flex-direction:column; }
+    .console{ width:100%; max-width:none; height:46vh; border-right:none; border-bottom:1px solid var(--hairline); }
+    .doc-title-wrap{ padding:0 10px; }
+    .brand{ display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="headerbar">
+    <div class="brand">⌗ <b>STARSHIP&nbsp;CAD</b></div>
+    <div class="doc-title-wrap">
+      <div class="doc-title" id="titleDisplay">Untitled Drawing</div>
+      <div class="doc-meta">created <span id="createdDisplay">—</span> · revised <span id="modifiedDisplay">—</span></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="btnNew">New</button>
+      <button class="btn" id="btnLoad">Load</button>
+      <button class="btn" id="btnSave">Save JSON</button>
+      <button class="btn" id="btnPng">Export PNG</button>
+      <button class="btn" id="btnDebug" title="Show bounding corners and centers">⊕ Anchors</button>
+      <span style="width:1px;background:var(--hairline);align-self:stretch;margin:4px 2px;display:inline-block;"></span>
+      <button class="btn" id="btnZoomIn"  title="Zoom in (+)">＋</button>
+      <button class="btn" id="btnZoomOut" title="Zoom out (−)">－</button>
+      <button class="btn" id="btnZoomReset" title="Reset zoom (1)">1:1</button>
+      <input type="file" id="fileInput" accept="application/json,.json">
+    </div>
+  </header>
+
+  <div class="body">
+
+    <section class="console">
+      <div class="console-label">
+        <span><span class="status-dot" id="statusDot"></span>Command Console</span>
+        <span id="lineCount">0 lines</span>
+      </div>
+      <div class="editor-wrap">
+        <div class="gutter" id="gutter"><div>1</div></div>
+        <textarea id="script" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      </div>
+      <div class="console-footer">
+        <div class="render-row">
+          <button class="btn primary" id="btnRender">Render ⌘⏎</button>
+          <span class="hint">auto-renders as you type</span>
+        </div>
+        <div class="log" id="log"></div>
+      </div>
+      <details class="reference">
+        <summary>Command Reference</summary>
+        <div class="reference-body">
+          <span class="ex"><code>title: Deck 3 — Cargo Bay</code><br>Sets the drawing title (shown above, Optima).</span>
+          <span class="ex"><code>units: m</code><br>Label for the working unit. Cosmetic only — all coordinates are already in this unit.</span>
+          <span class="ex"><code>world: x1, y1, x2, y2</code><br>Defines the real-world bounding box shown on the drafting surface.</span>
+          <span class="ex"><code>grid: 1.5</code><br>Optional. Spacing of the structure grid, default 1.5.</span>
+          <span class="ex"><code>wallwidth: 0.2</code><br>Optional. Default wall/outline thickness, default 0.2.</span>
+          <span class="ex"><code>rect: x1, y1, x2, y2</code><br>Draws a rectangular structure — white fill, gridded, outlined.</span>
+          <span class="ex"><code>oval: x1, y1, x2, y2</code><br>Draws an elliptical structure inside the given bounding box.</span>
+          <span class="ex"><code>semicircle: x1, y1, x2, y2, direction [flags]</code><br>Half-ellipse structure. Direction is which side the <em>flat edge</em> faces: <code>left</code> <code>right</code> <code>top</code> <code>bottom</code>. Optional flags: <code>noflatwall</code> suppresses the closing straight edge; <code>noleftwall</code> <code>norightwall</code> <code>notopwall</code> <code>nobottomwall</code> suppress individual sides; <code>nowall</code> suppresses all outlines.</span>
+          <span class="ex"><code>wall: x1, y1, x2, y2 [, width]</code><br>Draws a thick structural line. Optional 5th value overrides thickness.</span>
+          <span class="ex"><code>label: x1, y1, x2, y2, text</code><br>Centers TEXT (auto-uppercased) inside the box. <b>Box height controls font size</b> — use the same height on all labels for consistent sizing. <code>text:</code> works too.</span>
+          <span class="ex"><code># comment</code> or <code>// comment</code><br>Ignored.</span>
+        </div>
+      </details>
+    </section>
+
+    <section class="stage">
+      <div class="canvas-frame">
+        <div id="canvasHost">
+          <canvas id="stage-canvas"></canvas>
+        </div>
+        <span class="tick-bl"></span><span class="tick-br"></span>
+        <span class="tick-tm"></span><span class="tick-bm"></span>
+        <span class="tick-ml"></span><span class="tick-mr"></span>
+        <span class="crosshair-h"></span><span class="crosshair-v"></span>
+        <div class="hud" id="hud">x — · y —</div>
+      </div>
+      <div class="statusline">
+        <div id="worldStatus">world undefined</div>
+        <div id="scaleStatus"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function(){
+
+  /* ============================= constants ============================= */
+  const WALL_COLOR = '#1e4a3d';
+  const GRID_COLOR = '#cfd6d2';
+  const PAPER_COLOR = '#ffffff';
+  const DEFAULT_GRID = 1.5;
+  const DEFAULT_WALL_WIDTH = 0.2;
+  const LABEL_FONT = '"Univers Normal"';
+  const LABEL_WEIGHT = '300';
+
+  const SAMPLE_SCRIPT =
+`title: Submarine — Deck Plan
+units: m
+world: -28, -12, 28, 12
+grid: 1.5
+wallwidth: 0.25
+
+# bow dome — flat right, dome opens left
+semicircle: -22, -6, -10, 6, right, noflatwall
+
+# main pressure hull — nowall so rect edges don't show,
+# only the explicit top/bottom wall lines do
+rect: -16, -6, 4, 6, nowall
+# top and bottom hull walls
+wall: -16, 6, 3, 6
+wall: -16, -6, 3, -6
+# stern dome — flat left, dome opens right
+semicircle: -6, -6, 12, 6, left, noflatwall
+label: -22, -1, -16, 1, Bow
+label: -16, -1, 3, 1, Pressure Hull
+label: 2, -1, 12, 1, Stern
+
+`;
+
+  /* ============================= state ============================= */
+  let docMeta = { created: null, modified: null };
+  let currentDoc = null;     // parsed {title, units, world, gridSize, wallWidth, shapes}
+  let viewport = null;       // {x1,y1,x2,y2,scale,offsetX,offsetY,canvasW,canvasH}
+  let debounceTimer = null;
+  let showAnchors = false;
+  let hoverWx = null, hoverWy = null;
+  let zoomLevel = 1.0;   // multiplier on top of the fit-to-canvas scale
+  let panX = 0, panY = 0; // pan offset in screen pixels
+
+  /* ============================= dom refs ============================= */
+  const el = {
+    script: document.getElementById('script'),
+    gutter: document.getElementById('gutter'),
+    lineCount: document.getElementById('lineCount'),
+    log: document.getElementById('log'),
+    statusDot: document.getElementById('statusDot'),
+    titleDisplay: document.getElementById('titleDisplay'),
+    createdDisplay: document.getElementById('createdDisplay'),
+    modifiedDisplay: document.getElementById('modifiedDisplay'),
+    worldStatus: document.getElementById('worldStatus'),
+    scaleStatus: document.getElementById('scaleStatus'),
+    hud: document.getElementById('hud'),
+    canvasHost: document.getElementById('canvasHost'),
+    canvas: document.getElementById('stage-canvas'),
+    btnRender: document.getElementById('btnRender'),
+    btnNew: document.getElementById('btnNew'),
+    btnLoad: document.getElementById('btnLoad'),
+    btnSave: document.getElementById('btnSave'),
+    btnPng: document.getElementById('btnPng'),
+    btnDebug: document.getElementById('btnDebug'),
+    btnZoomIn: document.getElementById('btnZoomIn'),
+    btnZoomOut: document.getElementById('btnZoomOut'),
+    btnZoomReset: document.getElementById('btnZoomReset'),
+    fileInput: document.getElementById('fileInput'),
+  };
+  const ctx = el.canvas.getContext('2d');
+
+  /* ============================= parser ============================= */
+  function parseNumbers(str, count){
+    const parts = str.split(/[\s,]+/).filter(Boolean);
+    if (parts.length < count) throw new Error(`expected ${count} numbers, got ${parts.length}`);
+    return parts.slice(0, count).map(p => {
+      const v = parseFloat(p);
+      if (Number.isNaN(v)) throw new Error(`"${p}" is not a number`);
+      return v;
+    });
+  }
+
+  function parseScript(text){
+    const doc = { title:'', units:'', world:null, gridSize:DEFAULT_GRID, wallWidth:DEFAULT_WALL_WIDTH, shapes:[] };
+    const errors = [];
+    const lines = text.split('\n');
+
+    lines.forEach((raw, idx) => {
+      const lineNum = idx + 1;
+      const line = raw.trim();
+      if (!line) return;
+      if (line.startsWith('#') || line.startsWith('//')) return;
+
+      const m = line.match(/^([A-Za-z_]+)\s*:?\s*(.*)$/);
+      if (!m){ errors.push({lineNum, msg:`could not parse "${raw.trim()}"`}); return; }
+      const key = m[1].toLowerCase();
+      const rest = m[2].trim();
+
+      try{
+        switch(key){
+          case 'title':
+            doc.title = rest;
+            break;
+          case 'units':
+            doc.units = rest;
+            break;
+          case 'world': {
+            const n = parseNumbers(rest, 4);
+            doc.world = { x1:Math.min(n[0],n[2]), y1:Math.min(n[1],n[3]), x2:Math.max(n[0],n[2]), y2:Math.max(n[1],n[3]) };
+            break;
+          }
+          case 'grid': {
+            const v = parseFloat(rest);
+            if (Number.isNaN(v) || v <= 0) throw new Error(`grid spacing must be a positive number`);
+            doc.gridSize = v;
+            break;
+          }
+          case 'wallwidth': {
+            const v = parseFloat(rest);
+            if (Number.isNaN(v) || v <= 0) throw new Error(`wallwidth must be a positive number`);
+            doc.wallWidth = v;
+            break;
+          }
+          case 'rect': {
+            const n = parseNumbers(rest, 4);
+            const nowall = /\bnowall\b/i.test(rest);
+            doc.shapes.push({ type:'rect', x1:n[0], y1:n[1], x2:n[2], y2:n[3], nowall, lineNum });
+            break;
+          }
+          case 'oval': {
+            const n = parseNumbers(rest, 4);
+            const nowall = /\bnowall\b/i.test(rest);
+            doc.shapes.push({ type:'oval', x1:n[0], y1:n[1], x2:n[2], y2:n[3], nowall, lineNum });
+            break;
+          }
+          case 'semicircle':
+          case 'semi': {
+            const n = parseNumbers(rest, 4);
+            const parts = rest.split(/[\s,]+/).filter(Boolean);
+            const dir = (parts[4] || 'right').toLowerCase();
+            if (!['left','right','top','bottom'].includes(dir))
+              throw new Error(`direction must be left, right, top, or bottom`);
+            const nowall    = /\bnowall\b/i.test(rest);
+            const noleft    = nowall || /\bnoleftwall\b/i.test(rest);
+            const noright   = nowall || /\bnorightwall\b/i.test(rest);
+            const notop     = nowall || /\bnotopwall\b/i.test(rest);
+            const nobottom  = nowall || /\bnobottomwall\b/i.test(rest);
+            // convenience: noflatwall suppresses whichever edge is the flat closing side
+            const noflatwall = /\bnoflatwall\b/i.test(rest);
+            doc.shapes.push({ type:'semicircle', x1:n[0], y1:n[1], x2:n[2], y2:n[3], dir,
+              nowall, noleft, noright, notop, nobottom, noflatwall, lineNum });
+            break;
+          }
+          case 'wall': {
+            const n = parseNumbers(rest, 4);
+            const parts = rest.split(/[\s,]+/).filter(Boolean);
+            let width = null;
+            if (parts.length >= 5){
+              const w = parseFloat(parts[4]);
+              if (!Number.isNaN(w) && w > 0) width = w;
+            }
+            doc.shapes.push({ type:'wall', x1:n[0], y1:n[1], x2:n[2], y2:n[3], width, lineNum });
+            break;
+          }
+          case 'label':
+          case 'text': {
+            // first 4 numbers position the box; everything after is the label,
+            // so the text itself is free to contain commas/parentheses/etc.
+            const m2 = rest.match(/^\s*(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)\s*,?\s*(.*)$/);
+            if (!m2) throw new Error(`expected: x1, y1, x2, y2, text`);
+            const text = m2[5].trim();
+            if (!text) throw new Error(`label text is empty`);
+            doc.shapes.push({
+              type:'label',
+              x1:parseFloat(m2[1]), y1:parseFloat(m2[2]), x2:parseFloat(m2[3]), y2:parseFloat(m2[4]),
+              text, lineNum
+            });
+            break;
+          }
+          default:
+            errors.push({lineNum, msg:`unknown command "${key}"`});
+        }
+      }catch(e){
+        errors.push({lineNum, msg:e.message});
+      }
+    });
+
+    return { doc, errors };
+  }
+
+  /* ============================= rendering ============================= */
+  function niceStep(scale, gridSize){
+    // Ruler ticks always land on an actual grid line: step is a whole
+    // multiple of the drawing's grid spacing, sized to keep labels readable.
+    const targetPx = 84;
+    const rawMultiple = (targetPx / scale) / gridSize;
+    const multiples = [1,2,4,5,10,20,25,50,100,200,500];
+    let best = multiples[0], bestDiff = Infinity;
+    for (const m of multiples){
+      const diff = Math.abs(Math.log(m) - Math.log(Math.max(rawMultiple, 1e-6)));
+      if (diff < bestDiff){ bestDiff = diff; best = m; }
+    }
+    return gridSize * best;
+  }
+
+  function fitCanvas(){
+    const host = el.canvasHost;
+    const dpr = window.devicePixelRatio || 1;
+    const w = host.clientWidth, h = host.clientHeight;
+    el.canvas.width = Math.max(1, Math.floor(w * dpr));
+    el.canvas.height = Math.max(1, Math.floor(h * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { w, h };
+  }
+
+  function renderCanvas(){
+    const { w:cssW, h:cssH } = fitCanvas();
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    if (!currentDoc || !currentDoc.world){
+      viewport = null;
+      ctx.save();
+      ctx.fillStyle = '#3a4a46';
+      ctx.font = '12px ' + getComputedStyle(document.body).fontFamily;
+      ctx.textAlign = 'center';
+      ctx.fillText('define a world: x1, y1, x2, y2 to begin', cssW/2, cssH/2);
+      ctx.restore();
+      el.worldStatus.textContent = 'world undefined';
+      el.scaleStatus.textContent = '';
+      return;
+    }
+
+    const { x1, y1, x2, y2 } = currentDoc.world;
+    const worldW = Math.max(x2 - x1, 1e-6);
+    const worldH = Math.max(y2 - y1, 1e-6);
+
+    const pad = { top:34, right:18, bottom:18, left:40 };
+    const availW = cssW - pad.left - pad.right;
+    const availH = cssH - pad.top - pad.bottom;
+    const fitScale = Math.max(0.0001, Math.min(availW / worldW, availH / worldH));
+    const scale = fitScale * zoomLevel;
+    const drawW = worldW * scale, drawH = worldH * scale;
+    const offsetX = pad.left + (availW - drawW) / 2 + panX;
+    const offsetY = pad.top  + (availH - drawH) / 2 + panY;
+
+    viewport = { x1, y1, x2, y2, scale, offsetX, offsetY, cssW, cssH };
+
+    const toScreen = (wx, wy) => [ offsetX + (wx - x1) * scale, offsetY + (y2 - wy) * scale ];
+
+    // rulers
+    drawRulers(toScreen, x1, y1, x2, y2, scale, offsetX, offsetY, drawW, drawH, currentDoc.gridSize);
+
+    // structures first (fill + grid + outline)
+    currentDoc.shapes
+      .filter(s => s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle')
+      .forEach(s => drawStructure(s, toScreen, scale, currentDoc.gridSize, currentDoc.wallWidth));
+
+    // walls on top
+    currentDoc.shapes
+      .filter(s => s.type === 'wall')
+      .forEach(s => drawWall(s, toScreen, scale, currentDoc.wallWidth));
+
+    // labels on top of everything
+    currentDoc.shapes
+      .filter(s => s.type === 'label')
+      .forEach(s => drawLabel(s, toScreen, scale, hoverWx, hoverWy));
+
+    // debug anchors
+    if (showAnchors){
+      currentDoc.shapes.forEach(s => drawAnchors(s, toScreen, hoverWx, hoverWy));
+    }
+
+    // status line
+    el.worldStatus.innerHTML = `world <span>${fmt(x1)}, ${fmt(y1)}</span> to <span>${fmt(x2)}, ${fmt(y2)}</span> &nbsp;·&nbsp; units <span>${currentDoc.units || '—'}</span> &nbsp;·&nbsp; grid <span>${currentDoc.gridSize}</span>`;
+    el.scaleStatus.textContent = `zoom ${Math.round(zoomLevel * 100)}% · 1 unit ≈ ${scale.toFixed(1)} px`;
+  }
+
+  function drawRulers(toScreen, x1, y1, x2, y2, scale, offsetX, offsetY, drawW, drawH, gridSize){
+    const step = niceStep(scale, gridSize);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(73,165,134,0.35)';
+    ctx.fillStyle = '#5f7a73';
+    ctx.font = '9px ' + getComputedStyle(document.body).fontFamily;
+    ctx.lineWidth = 1;
+
+    // top ruler
+    ctx.textAlign = 'center';
+    let start = Math.ceil(x1/step)*step;
+    for (let gx = start; gx <= x2 + 1e-9; gx += step){
+      const [sx] = toScreen(gx, y2);
+      ctx.beginPath();
+      ctx.moveTo(sx, offsetY - 6);
+      ctx.lineTo(sx, offsetY);
+      ctx.stroke();
+      ctx.fillText(fmt(gx), sx, offsetY - 10);
+    }
+    // left ruler
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    start = Math.ceil(y1/step)*step;
+    for (let gy = start; gy <= y2 + 1e-9; gy += step){
+      const [, sy] = toScreen(x1, gy);
+      ctx.beginPath();
+      ctx.moveTo(offsetX - 6, sy);
+      ctx.lineTo(offsetX, sy);
+      ctx.stroke();
+      ctx.fillText(fmt(gy), offsetX - 10, sy);
+    }
+    ctx.restore();
+  }
+
+  function shapePath(s, toScreen, scale){
+    ctx.beginPath();
+    if (s.type === 'rect'){
+      const [sx1, sy1] = toScreen(s.x1, s.y1);
+      const [sx2, sy2] = toScreen(s.x2, s.y2);
+      const x = Math.min(sx1, sx2), y = Math.min(sy1, sy2);
+      const w = Math.abs(sx2 - sx1), h = Math.abs(sy2 - sy1);
+      ctx.rect(x, y, w, h);
+    } else if (s.type === 'oval'){
+      const cx = (s.x1 + s.x2) / 2, cy = (s.y1 + s.y2) / 2;
+      const [scx, scy] = toScreen(cx, cy);
+      const rx = Math.abs(s.x2 - s.x1) / 2 * scale;
+      const ry = Math.abs(s.y2 - s.y1) / 2 * scale;
+      ctx.ellipse(scx, scy, Math.max(rx,0.01), Math.max(ry,0.01), 0, 0, Math.PI * 2);
+    } else if (s.type === 'semicircle'){
+      // bounding box corners in screen space
+      const [sx1, sy1] = toScreen(s.x1, s.y1);
+      const [sx2, sy2] = toScreen(s.x2, s.y2);
+      const left = Math.min(sx1, sx2), right = Math.max(sx1, sx2);
+      const top  = Math.min(sy1, sy2), bottom = Math.max(sy1, sy2);
+      const cx = (left + right) / 2, cy = (top + bottom) / 2;
+      const hw = (right - left) / 2, hh = (bottom - top) / 2;
+      // dir = which side the flat edge is on
+      const dir = s.dir || 'right';
+      if (dir === 'right'){
+        // flat edge on right, dome opens left
+        ctx.moveTo(cx, top);
+        ctx.ellipse(cx, cy, hw, hh, 0, -Math.PI/2, Math.PI/2, true);
+        ctx.lineTo(cx, bottom);
+        ctx.closePath();
+      } else if (dir === 'left'){
+        // flat edge on left, dome opens right
+        ctx.moveTo(cx, top);
+        ctx.ellipse(cx, cy, hw, hh, 0, -Math.PI/2, Math.PI/2, false);
+        ctx.lineTo(cx, bottom);
+        ctx.closePath();
+      } else if (dir === 'bottom'){
+        // flat edge on bottom, dome opens up
+        ctx.moveTo(left, cy);
+        ctx.ellipse(cx, cy, hw, hh, 0, Math.PI, 0, true);
+        ctx.lineTo(right, cy);
+        ctx.closePath();
+      } else { // top
+        // flat edge on top, dome opens down
+        ctx.moveTo(left, cy);
+        ctx.ellipse(cx, cy, hw, hh, 0, Math.PI, 0, false);
+        ctx.lineTo(right, cy);
+        ctx.closePath();
+      }
+    }
+  }
+
+  function drawStructure(s, toScreen, scale, gridSize, wallWidth){
+    ctx.save();
+    shapePath(s, toScreen, scale);
+    ctx.fillStyle = PAPER_COLOR;
+    ctx.fill();
+
+    ctx.save();
+    shapePath(s, toScreen, scale);
+    ctx.clip();
+    drawGrid(s, toScreen, gridSize);
+    ctx.restore();
+
+    if (s.type === 'semicircle' && !s.nowall){
+      // Draw dome arc and flat edge as separate paths so each can be suppressed
+      const [sx1, sy1] = toScreen(s.x1, s.y1);
+      const [sx2, sy2] = toScreen(s.x2, s.y2);
+      const left = Math.min(sx1,sx2), right = Math.max(sx1,sx2);
+      const top  = Math.min(sy1,sy2), bottom = Math.max(sy1,sy2);
+      const cx = (left+right)/2, cy = (top+bottom)/2;
+      const hw = (right-left)/2, hh = (bottom-top)/2;
+      const dir = s.dir || 'right';
+      const lw = Math.max(2, wallWidth * scale);
+      ctx.lineWidth = lw;
+      ctx.strokeStyle = WALL_COLOR;
+
+      // dome arc
+      const suppressDome = (dir==='left'&&s.noleft) || (dir==='right'&&s.noright) ||
+                           (dir==='top'&&s.notop)   || (dir==='bottom'&&s.nobottom);
+      // flat closing edge (the straight line across the cut)
+      const suppressFlat = s.noflatwall ||
+                           (dir==='right'&&s.noright) || (dir==='left'&&s.noleft) ||
+                           (dir==='bottom'&&s.nobottom) || (dir==='top'&&s.notop);
+
+      // actually: dome is on the OPEN side, flat is on the named direction side
+      // dir = which side the flat edge faces
+      const suppressDomeArc = (dir==='right'  && s.noleft)   ||
+                               (dir==='left'   && s.noright)  ||
+                               (dir==='bottom' && s.notop)    ||
+                               (dir==='top'    && s.nobottom);
+      const suppressFlatEdge = s.noflatwall ||
+                               (dir==='right'  && s.noright)  ||
+                               (dir==='left'   && s.noleft)   ||
+                               (dir==='bottom' && s.nobottom) ||
+                               (dir==='top'    && s.notop);
+
+      if (!suppressDomeArc){
+        ctx.beginPath();
+        if (dir==='right')       ctx.ellipse(cx, cy, hw, hh, 0, -Math.PI/2, Math.PI/2, true);
+        else if (dir==='left')   ctx.ellipse(cx, cy, hw, hh, 0, -Math.PI/2, Math.PI/2, false);
+        else if (dir==='bottom') ctx.ellipse(cx, cy, hw, hh, 0, Math.PI, 0, true);
+        else                     ctx.ellipse(cx, cy, hw, hh, 0, Math.PI, 0, false);
+        ctx.stroke();
+      }
+      if (!suppressFlatEdge){
+        ctx.beginPath();
+        if (dir==='right' || dir==='left'){ ctx.moveTo(cx, top); ctx.lineTo(cx, bottom); }
+        else                              { ctx.moveTo(left, cy); ctx.lineTo(right, cy); }
+        ctx.stroke();
+      }
+    } else if (!s.nowall){
+      shapePath(s, toScreen, scale);
+      ctx.lineWidth = Math.max(2, wallWidth * scale);
+      ctx.strokeStyle = WALL_COLOR;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawGrid(s, toScreen, gridSize){
+    const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
+    const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
+    ctx.strokeStyle = GRID_COLOR;
+    ctx.lineWidth = 1;
+
+    let startX = Math.floor(minX / gridSize) * gridSize;
+    for (let gx = startX; gx <= maxX + 1e-9; gx += gridSize){
+      const [sx1, sy1] = toScreen(gx, minY);
+      const [sx2, sy2] = toScreen(gx, maxY);
+      ctx.beginPath(); ctx.moveTo(sx1, sy1); ctx.lineTo(sx2, sy2); ctx.stroke();
+    }
+    let startY = Math.floor(minY / gridSize) * gridSize;
+    for (let gy = startY; gy <= maxY + 1e-9; gy += gridSize){
+      const [sx1, sy1] = toScreen(minX, gy);
+      const [sx2, sy2] = toScreen(maxX, gy);
+      ctx.beginPath(); ctx.moveTo(sx1, sy1); ctx.lineTo(sx2, sy2); ctx.stroke();
+    }
+  }
+
+  function drawWall(s, toScreen, scale, defaultWidth){
+    const [sx1, sy1] = toScreen(s.x1, s.y1);
+    const [sx2, sy2] = toScreen(s.x2, s.y2);
+    const width = s.width || defaultWidth;
+    ctx.save();
+    ctx.strokeStyle = WALL_COLOR;
+    ctx.lineWidth = Math.max(2.5, width * scale);
+    ctx.lineCap = 'square';
+    ctx.beginPath();
+    ctx.moveTo(sx1, sy1);
+    ctx.lineTo(sx2, sy2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawLabel(s, toScreen, scale, hoverWx, hoverWy){
+    const [sx1, sy1] = toScreen(s.x1, s.y1);
+    const [sx2, sy2] = toScreen(s.x2, s.y2);
+    const left = Math.min(sx1, sx2), right = Math.max(sx1, sx2);
+    const top = Math.min(sy1, sy2), bottom = Math.max(sy1, sy2);
+    const boxW = right - left, boxH = bottom - top;
+    if (boxW < 3 || boxH < 3) return;
+
+    // check if mouse is inside the label box (in world coords)
+    const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
+    const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
+    const hot = hoverWx !== null &&
+      hoverWx >= minX && hoverWx <= maxX &&
+      hoverWy >= minY && hoverWy <= maxY;
+
+    const text = s.text.toUpperCase();
+    const cx = (left + right) / 2, cy = (top + bottom) / 2;
+    const worldBoxH = Math.abs(s.y2 - s.y1);
+    const fontSize = worldBoxH * scale * 0.35;
+    if (fontSize < 4) return;
+
+    ctx.save();
+
+    // highlight box outline on hover
+    if (hot){
+      ctx.strokeStyle = '#ff8080';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.strokeRect(left, top, boxW, boxH);
+      ctx.setLineDash([]);
+    }
+
+    ctx.fillStyle = hot ? '#ff8080' : WALL_COLOR;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${LABEL_WEIGHT} ${fontSize}px ${LABEL_FONT}`;
+    ctx.fillText(text, cx, cy + fontSize * 0.03);
+    ctx.restore();
+  }
+
+  function drawAnchors(s, toScreen, hoverWx, hoverWy){
+    const CROSS = 5;
+    const CROSS_HOT = 8;
+    const HOT_DIST = 18; // screen pixels
+    const points = [];
+
+    if (s.type === 'rect' || s.type === 'oval' || s.type === 'label'){
+      points.push([s.x1, s.y1], [s.x2, s.y1], [s.x1, s.y2], [s.x2, s.y2]);
+      points.push([(s.x1+s.x2)/2, (s.y1+s.y2)/2]);
+    } else if (s.type === 'semicircle'){
+      // corners of bounding box + center + midpoints of each edge
+      const cx = (s.x1+s.x2)/2, cy = (s.y1+s.y2)/2;
+      points.push([s.x1, s.y1], [s.x2, s.y1], [s.x1, s.y2], [s.x2, s.y2]);
+      points.push([cx, cy]);
+      points.push([cx, s.y1], [cx, s.y2], [s.x1, cy], [s.x2, cy]);
+    } else if (s.type === 'wall'){
+      points.push([s.x1, s.y1], [s.x2, s.y2]);
+      points.push([(s.x1+s.x2)/2, (s.y1+s.y2)/2]);
+    }
+
+    ctx.save();
+    ctx.lineWidth = 1.5;
+    const hasHover = hoverWx !== null && viewport;
+    const [hsx, hsy] = hasHover ? toScreen(hoverWx, hoverWy) : [0, 0];
+    for (const [wx, wy] of points){
+      const [sx, sy] = toScreen(wx, wy);
+      const hot = hasHover && Math.hypot(sx - hsx, sy - hsy) < HOT_DIST;
+      const size = hot ? CROSS_HOT : CROSS;
+      ctx.strokeStyle = hot ? '#ff8080' : '#e05050';
+      ctx.lineWidth = hot ? 2.5 : 1.5;
+      ctx.beginPath();
+      ctx.moveTo(sx - size, sy); ctx.lineTo(sx + size, sy);
+      ctx.moveTo(sx, sy - size); ctx.lineTo(sx, sy + size);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function fmt(n){
+    const r = Math.round(n * 100) / 100;
+    return (Object.is(r,-0)?0:r).toString();
+  }
+
+  /* ============================= UI: editor gutter ============================= */
+  function syncGutter(){
+    const text = el.script.value;
+    const n = text.split('\n').length;
+    let html = '';
+    for (let i = 1; i <= n; i++) html += `<div>${i}</div>`;
+    el.gutter.innerHTML = html;
+    el.lineCount.textContent = `${n} line${n===1?'':'s'}`;
+  }
+  el.script.addEventListener('scroll', () => { el.gutter.scrollTop = el.script.scrollTop; });
+
+  /* ============================= run pipeline ============================= */
+  function runScript(){
+    const { doc, errors } = parseScript(el.script.value);
+    currentDoc = doc;
+
+    // header
+    el.titleDisplay.textContent = doc.title || 'Untitled Drawing';
+    docMeta.modified = new Date();
+    if (!docMeta.created) docMeta.created = docMeta.modified;
+    el.createdDisplay.textContent = fmtDate(docMeta.created);
+    el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
+
+    // log
+    if (errors.length){
+      el.statusDot.classList.add('err');
+      el.log.innerHTML = errors
+        .sort((a,b)=>a.lineNum-b.lineNum)
+        .map(e => `<div class="err-line"><b>line ${e.lineNum}:</b> ${escapeHtml(e.msg)}</div>`)
+        .join('');
+    } else {
+      el.statusDot.classList.remove('err');
+      const shapeCount = doc.shapes.length;
+      el.log.innerHTML = `<div class="ok">parsed clean — ${shapeCount} shape${shapeCount===1?'':'s'}${doc.world ? '' : ' · no world defined yet'}</div>`;
+    }
+
+    syncGutter();
+    renderCanvas();
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function fmtDate(d){
+    if (!d) return '—';
+    const dt = (d instanceof Date) ? d : new Date(d);
+    if (isNaN(dt.getTime())) return '—';
+    const pad = n => String(n).padStart(2,'0');
+    return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  }
+
+  /* ============================= events ============================= */
+  el.script.addEventListener('input', () => {
+    syncGutter();
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(runScript, 350);
+  });
+  el.script.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter'){
+      e.preventDefault();
+      clearTimeout(debounceTimer);
+      runScript();
+    }
+    if (e.key === 'Tab'){
+      e.preventDefault();
+      const s = el.script.selectionStart, en = el.script.selectionEnd;
+      el.script.value = el.script.value.slice(0,s) + '  ' + el.script.value.slice(en);
+      el.script.selectionStart = el.script.selectionEnd = s + 2;
+      syncGutter();
+    }
+  });
+  el.btnRender.addEventListener('click', () => { clearTimeout(debounceTimer); runScript(); });
+
+  el.btnDebug.addEventListener('click', () => {
+    showAnchors = !showAnchors;
+    el.btnDebug.classList.toggle('active', showAnchors);
+    renderCanvas();
+  });
+
+  /* ============================= zoom ============================= */
+  const ZOOM_STEP = 1.25;
+  const ZOOM_MIN  = 0.1;
+  const ZOOM_MAX  = 20;
+
+  function applyZoom(factor, pivotSx, pivotSy){
+    const before = zoomLevel;
+    zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoomLevel * factor));
+    if (zoomLevel === before) return;
+    const ratio = zoomLevel / before;
+    if (pivotSx !== undefined){
+      // zoom toward a specific screen point
+      panX = panX - (pivotSx - viewport.offsetX) * (ratio - 1);
+      panY = panY - (pivotSy - viewport.offsetY) * (ratio - 1);
+    } else {
+      // zoom toward viewport centre: just scale existing pan offset
+      panX *= ratio;
+      panY *= ratio;
+    }
+    renderCanvas();
+  }
+
+  function resetZoom(){
+    zoomLevel = 1; panX = 0; panY = 0;
+    renderCanvas();
+  }
+
+  el.btnZoomIn.addEventListener('click',    () => applyZoom(ZOOM_STEP));
+  el.btnZoomOut.addEventListener('click',   () => applyZoom(1 / ZOOM_STEP));
+  el.btnZoomReset.addEventListener('click', () => resetZoom());
+
+  // mouse wheel zoom — pivot on viewport centre
+  el.canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
+    applyZoom(factor); // no pivot args = centre
+  }, { passive: false });
+
+  // keyboard shortcuts — +/= zoom in, -/_ zoom out, 1 reset
+  // only when canvas panel has focus (not while typing in the script editor)
+  window.addEventListener('keydown', (e) => {
+    if (e.target === el.script) return;
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); applyZoom(ZOOM_STEP); }
+    if (e.key === '-' || e.key === '_') { e.preventDefault(); applyZoom(1 / ZOOM_STEP); }
+    if (e.key === '1')                  { e.preventDefault(); resetZoom(); }
+  });
+
+  // pan with click-drag on the canvas
+  let isPanning = false, panStartX = 0, panStartY = 0, panStartOffsetX = 0, panStartOffsetY = 0;
+  el.canvas.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    isPanning = true;
+    panStartX = e.clientX; panStartY = e.clientY;
+    panStartOffsetX = panX; panStartOffsetY = panY;
+    el.canvas.style.cursor = 'grabbing';
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    panX = panStartOffsetX + (e.clientX - panStartX);
+    panY = panStartOffsetY + (e.clientY - panStartY);
+    renderCanvas();
+  });
+  window.addEventListener('mouseup', () => {
+    if (!isPanning) return;
+    isPanning = false;
+    el.canvas.style.cursor = '';
+  });
+
+  if (window.ResizeObserver){
+    new ResizeObserver(() => { if (currentDoc) renderCanvas(); }).observe(el.canvasHost);
+  }
+
+  el.canvas.addEventListener('mousemove', (e) => {
+    if (!viewport){ el.hud.innerHTML = 'x — · y —'; return; }
+    const rect = el.canvas.getBoundingClientRect();
+    const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+    hoverWx = viewport.x1 + (sx - viewport.offsetX) / viewport.scale;
+    hoverWy = viewport.y2 - (sy - viewport.offsetY) / viewport.scale;
+    el.hud.innerHTML = `x <b>${fmt(hoverWx)}</b> · y <b>${fmt(hoverWy)}</b>`;
+    if (showAnchors) renderCanvas();
+  });
+  el.canvas.addEventListener('mouseleave', () => {
+    el.hud.innerHTML = 'x — · y —';
+    hoverWx = null; hoverWy = null;
+    if (showAnchors) renderCanvas();
+  });
+
+  /* ============================= toolbar: new / load / save / png ============================= */
+  let newArmed = false;
+  el.btnNew.addEventListener('click', () => {
+    if (!newArmed){
+      newArmed = true;
+      el.btnNew.textContent = 'Confirm?';
+      el.btnNew.classList.add('confirm');
+      setTimeout(() => {
+        newArmed = false;
+        el.btnNew.textContent = 'New';
+        el.btnNew.classList.remove('confirm');
+      }, 3000);
+      return;
+    }
+    newArmed = false;
+    el.btnNew.textContent = 'New';
+    el.btnNew.classList.remove('confirm');
+    docMeta = { created: new Date(), modified: new Date() };
+    el.script.value = `title: Untitled Drawing\nunits: m\nworld: -20, -15, 20, 15\ngrid: 1.5\n\nrect: -18, -13, 18, 13\n`;
+    zoomLevel = 1; panX = 0; panY = 0;
+    syncGutter();
+    runScript();
+  });
+
+  el.btnLoad.addEventListener('click', () => el.fileInput.click());
+  el.fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const data = JSON.parse(reader.result);
+        if (typeof data.script !== 'string') throw new Error('file has no "script" field');
+        el.script.value = data.script;
+        docMeta.created = data.created ? new Date(data.created) : new Date();
+        docMeta.modified = data.modified ? new Date(data.modified) : new Date();
+        zoomLevel = 1; panX = 0; panY = 0;
+        syncGutter();
+        runScript();
+        el.createdDisplay.textContent = fmtDate(docMeta.created);
+        el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
+      }catch(err){
+        el.statusDot.classList.add('err');
+        el.log.innerHTML = `<div class="err-line"><b>load failed:</b> ${escapeHtml(err.message)}</div>`;
+      }
+    };
+    reader.readAsText(file);
+    el.fileInput.value = '';
+  });
+
+  el.btnSave.addEventListener('click', () => {
+    clearTimeout(debounceTimer);
+    runScript();
+    docMeta.modified = new Date();
+    el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
+    const payload = {
+      title: currentDoc ? currentDoc.title : '',
+      units: currentDoc ? currentDoc.units : '',
+      created: docMeta.created.toISOString(),
+      modified: docMeta.modified.toISOString(),
+      script: el.script.value,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = slug(payload.title) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  el.btnPng.addEventListener('click', () => {
+    if (!currentDoc || !currentDoc.world) return;
+    el.canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = slug(currentDoc.title) + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  });
+
+  function slug(s){
+    const base = (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    return base || 'diagram';
+  }
+
+  /* ============================= init ============================= */
+  docMeta.created = new Date();
+  docMeta.modified = docMeta.created;
+  el.script.value = SAMPLE_SCRIPT;
+  syncGutter();
+  runScript();
+
+})();
+</script>
+</body>
+</html>
