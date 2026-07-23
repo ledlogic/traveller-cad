@@ -935,6 +935,24 @@ place: chair_rect,  -6,  0, 1, 180
                      currentDoc.featureThickness, currentDoc.componentThickness);
     }
 
+    // selection highlight rings (always visible when something is selected)
+    if (selectedIndices.size && currentDoc.placements){
+      ctx.save();
+      for (const idx of selectedIndices){
+        const p = currentDoc.placements[idx];
+        if (!p) continue;
+        const [sx, sy] = toScreen(p.x, p.y);
+        ctx.strokeStyle = '#5fc9a6';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.beginPath();
+        ctx.arc(sx, sy, 18, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.restore();
+    }
+
     // debug anchors
     if (showAnchors){
       currentDoc.shapes.forEach(s => drawAnchors(s, toScreen, hoverWx, hoverWy));
@@ -1441,35 +1459,243 @@ place: chair_rect,  -6,  0, 1, 180
     applyZoom(factor); // no pivot args = centre
   }, { passive: false });
 
-  // keyboard shortcuts — +/= zoom in, -/_ zoom out, 1 reset
-  // only when canvas panel has focus (not while typing in the script editor)
-  window.addEventListener('keydown', (e) => {
-    if (e.target === el.script) return;
-    if (e.key === '+' || e.key === '=') { e.preventDefault(); applyZoom(ZOOM_STEP); }
-    if (e.key === '-' || e.key === '_') { e.preventDefault(); applyZoom(1 / ZOOM_STEP); }
-    if (e.key === '1')                  { e.preventDefault(); resetZoom(); }
-  });
-
-  // pan with click-drag on the canvas
+  /* ============================= selection & interaction ============================= */
+  let selectedIndices = new Set();  // set of placement indices currently selected
   let isPanning = false, panStartX = 0, panStartY = 0, panStartOffsetX = 0, panStartOffsetY = 0;
+  let dragState = null;  // { offsets: [{idx, offsetWx, offsetWy}], startWx, startWy }
+  const GRAB_RADIUS_PX = 22;
+
+  function screenToWorld(clientX, clientY){
+    if (!viewport) return null;
+    const rect = el.canvas.getBoundingClientRect();
+    const sx = clientX - rect.left, sy = clientY - rect.top;
+    return {
+      wx: viewport.x1 + (sx - viewport.offsetX) / viewport.scale,
+      wy: viewport.y2 - (sy - viewport.offsetY) / viewport.scale,
+    };
+  }
+
+  function findNearestPlacement(clientX, clientY){
+    if (!viewport || !currentDoc || !currentDoc.placements.length) return -1;
+    const rect = el.canvas.getBoundingClientRect();
+    const sx = clientX - rect.left, sy = clientY - rect.top;
+    let best = -1, bestDist = GRAB_RADIUS_PX;
+    currentDoc.placements.forEach((p, i) => {
+      const px = viewport.offsetX + (p.x - viewport.x1) * viewport.scale;
+      const py = viewport.offsetY + (viewport.y2 - p.y) * viewport.scale;
+      const d = Math.hypot(sx - px, sy - py);
+      if (d < bestDist){ bestDist = d; best = i; }
+    });
+    return best;
+  }
+
+  // Write x,y back to the nth place: line in the script
+  function syncPlacementXY(idx){
+    const p = currentDoc.placements[idx];
+    const lines = el.script.value.split('\n');
+    let found = 0;
+    for (let i = 0; i < lines.length; i++){
+      const t = lines[i].trim().toLowerCase();
+      if (t.startsWith('place:')||t.startsWith('place ')){
+        if (found === idx){
+          const m = lines[i].match(/^(\s*place\s*:?\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*,\s*)(-?\d+(?:\.\d+)?)(\s*,\s*)(-?\d+(?:\.\d+)?)(.*)/i);
+          if (m){
+            lines[i] = `${m[1]}${m[2]}${m[3]}${r2(p.x)}${m[5]}${r2(p.y)}${m[7]}`;
+          }
+          break;
+        }
+        found++;
+      }
+    }
+    el.script.value = lines.join('\n');
+    syncGutter();
+  }
+
+  // Write angle back to the nth place: line
+  function syncPlacementAngle(idx){
+    const p = currentDoc.placements[idx];
+    const angleDeg = r2(p.angle * 180 / Math.PI);
+    const lines = el.script.value.split('\n');
+    let found = 0;
+    for (let i = 0; i < lines.length; i++){
+      const t = lines[i].trim().toLowerCase();
+      if (t.startsWith('place:')||t.startsWith('place ')){
+        if (found === idx){
+          // Match: place: name, x, y [, scale [, angle]]
+          const m = lines[i].match(/^(\s*place\s*:?\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*,\s*)(-?\d+(?:\.\d+)?)(\s*,\s*)(-?\d+(?:\.\d+)?)((\s*,\s*)(-?\d+(?:\.\d+)?))?((\s*,\s*)(-?\d+(?:\.\d+)?))?(.*)$/i);
+          if (m){
+            const scale = m[9] !== undefined ? m[9] : '1';
+            const sep1 = m[8] || ', ';
+            const sep2 = m[12] || ', ';
+            const tail = m[14] || '';
+            lines[i] = `${m[1]}${m[2]}${m[3]}${r2(p.x)}${m[5]}${r2(p.y)}${sep1}${scale}${sep2}${angleDeg}${tail}`;
+          }
+          break;
+        }
+        found++;
+      }
+    }
+    el.script.value = lines.join('\n');
+    syncGutter();
+  }
+
+  // Insert a new place: line for a copy after the source line
+  function insertPlaceCopy(idx){
+    const p = currentDoc.placements[idx];
+    const angleDeg = r2(p.angle * 180 / Math.PI);
+    const newLine = `place: ${p.name}, ${r2(p.x)}, ${r2(p.y)}, ${r2(p.scale||1)}, ${angleDeg}`;
+    const lines = el.script.value.split('\n');
+    let found = 0, insertAfter = -1;
+    for (let i = 0; i < lines.length; i++){
+      const t = lines[i].trim().toLowerCase();
+      if (t.startsWith('place:')||t.startsWith('place ')){
+        if (found === idx){ insertAfter = i; break; }
+        found++;
+      }
+    }
+    if (insertAfter >= 0){
+      lines.splice(insertAfter + 1, 0, newLine);
+      el.script.value = lines.join('\n');
+      syncGutter();
+      // re-parse so new placement is live; select the new one
+      const { doc, errors } = parseScript(el.script.value);
+      currentDoc = doc;
+      selectedIndices = new Set([idx + 1]); // newly inserted placement is at idx+1
+      renderCanvas();
+    }
+  }
+
+  function r2(n){ return Math.round(n * 100) / 100; }
+
+  /* ── mouse down ─────────────────────────────────────────────────── */
   el.canvas.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return;
-    isPanning = true;
-    panStartX = e.clientX; panStartY = e.clientY;
-    panStartOffsetX = panX; panStartOffsetY = panY;
-    el.canvas.style.cursor = 'grabbing';
+    const idx = findNearestPlacement(e.clientX, e.clientY);
+
+    if (e.shiftKey && idx >= 0){
+      // Shift+click on component — toggle selection, no pan
+      if (selectedIndices.has(idx)) selectedIndices.delete(idx);
+      else selectedIndices.add(idx);
+      renderCanvas();
+      return;
+    }
+
+    if (e.shiftKey){
+      // Shift+click empty space — pan
+      isPanning = true;
+      panStartX = e.clientX; panStartY = e.clientY;
+      panStartOffsetX = panX; panStartOffsetY = panY;
+      el.canvas.style.cursor = 'grabbing';
+      return;
+    }
+
+    if (idx >= 0){
+      // Plain click on component
+      if (!selectedIndices.has(idx)){
+        selectedIndices = new Set([idx]);
+      }
+      // Start drag for all selected
+      const wpos = screenToWorld(e.clientX, e.clientY);
+      dragState = {
+        offsets: [...selectedIndices].map(i => ({
+          idx: i,
+          offsetWx: wpos.wx - currentDoc.placements[i].x,
+          offsetWy: wpos.wy - currentDoc.placements[i].y,
+        })),
+      };
+      el.canvas.style.cursor = 'move';
+      e.preventDefault();
+      renderCanvas();
+    } else {
+      // Click on empty space — deselect + pan
+      selectedIndices = new Set();
+      isPanning = true;
+      panStartX = e.clientX; panStartY = e.clientY;
+      panStartOffsetX = panX; panStartOffsetY = panY;
+      el.canvas.style.cursor = 'grabbing';
+      renderCanvas();
+    }
   });
+
+  /* ── mouse move ─────────────────────────────────────────────────── */
   window.addEventListener('mousemove', (e) => {
-    if (!isPanning) return;
-    panX = panStartOffsetX + (e.clientX - panStartX);
-    panY = panStartOffsetY + (e.clientY - panStartY);
-    renderCanvas();
+    if (isPanning){
+      panX = panStartOffsetX + (e.clientX - panStartX);
+      panY = panStartOffsetY + (e.clientY - panStartY);
+      renderCanvas();
+    } else if (dragState){
+      const wpos = screenToWorld(e.clientX, e.clientY);
+      if (!wpos) return;
+      for (const { idx, offsetWx, offsetWy } of dragState.offsets){
+        currentDoc.placements[idx].x = wpos.wx - offsetWx;
+        currentDoc.placements[idx].y = wpos.wy - offsetWy;
+      }
+      renderCanvas();
+    }
   });
+
+  /* ── mouse up ───────────────────────────────────────────────────── */
   window.addEventListener('mouseup', () => {
-    if (!isPanning) return;
-    isPanning = false;
-    el.canvas.style.cursor = '';
+    if (isPanning){
+      isPanning = false;
+      el.canvas.style.cursor = '';
+    }
+    if (dragState){
+      // Write all moved placements back to script
+      for (const { idx } of dragState.offsets) syncPlacementXY(idx);
+      el.script.value = el.script.value; // already updated in syncPlacementXY calls
+      renderCanvas();
+      dragState = null;
+      el.canvas.style.cursor = '';
+    }
   });
+
+  /* ── keyboard: R = rotate, C = copy ────────────────────────────── */
+  window.addEventListener('keydown', (e) => {
+    if (e.target === el.script) return;
+
+    // Zoom shortcuts
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); applyZoom(ZOOM_STEP); return; }
+    if (e.key === '-' || e.key === '_') { e.preventDefault(); applyZoom(1 / ZOOM_STEP); return; }
+    if (e.key === '1')                  { e.preventDefault(); resetZoom(); return; }
+
+    // Component shortcuts — need at least one selected
+    if (e.key === 'r' || e.key === 'R'){
+      if (!selectedIndices.size) return;
+      e.preventDefault();
+      // Get current angle of first selected (degrees)
+      const firstIdx = [...selectedIndices][0];
+      const currentDeg = r2(currentDoc.placements[firstIdx].angle * 180 / Math.PI);
+      const input = window.prompt(
+        `Rotate selected component(s)\nEnter new angle θ in degrees — mathematical convention: CCW is positive (θ=0 faces right, θ=90 faces up)\nCurrent θ: ${currentDeg}°`,
+        String(currentDeg)
+      );
+      if (input === null) return; // cancelled
+      const newDeg = parseFloat(input);
+      if (Number.isNaN(newDeg)) return;
+      for (const idx of selectedIndices){
+        currentDoc.placements[idx].angle = newDeg * Math.PI / 180;
+        syncPlacementAngle(idx);
+      }
+      renderCanvas();
+    }
+
+    if (e.key === 'c' || e.key === 'C'){
+      if (!selectedIndices.size) return;
+      e.preventDefault();
+      // Copy each selected component (placed on top of original)
+      // Do in reverse index order so insertions don't shift indices
+      const sorted = [...selectedIndices].sort((a,b) => b - a);
+      for (const idx of sorted) insertPlaceCopy(idx);
+    }
+
+    if (e.key === 'Escape'){
+      selectedIndices = new Set();
+      renderCanvas();
+    }
+  });
+
+
 
   if (window.ResizeObserver){
     new ResizeObserver(() => { if (currentDoc) renderCanvas(); }).observe(el.canvasHost);
@@ -1482,7 +1708,7 @@ place: chair_rect,  -6,  0, 1, 180
     hoverWx = viewport.x1 + (sx - viewport.offsetX) / viewport.scale;
     hoverWy = viewport.y2 - (sy - viewport.offsetY) / viewport.scale;
     el.hud.innerHTML = `x <b>${fmt(hoverWx)}</b> · y <b>${fmt(hoverWy)}</b>`;
-    if (showAnchors) renderCanvas();
+    if (showAnchors || dragState) renderCanvas();
   });
   el.canvas.addEventListener('mouseleave', () => {
     el.hud.innerHTML = 'x — · y —';
