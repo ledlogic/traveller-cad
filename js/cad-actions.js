@@ -367,12 +367,14 @@ el.fileInput.addEventListener('change', (e) => {
       const data = JSON.parse(reader.result);
       if (typeof data.script !== 'string') throw new Error('file has no "script" field');
       el.script.value = data.script;
-      docMeta.created = data.created ? new Date(data.created) : new Date();
+      // Accept both created/modified (new format) and legacy formats
+      docMeta.created  = data.created  ? new Date(data.created)  : new Date();
       docMeta.modified = data.modified ? new Date(data.modified) : new Date();
       zoomLevel = 1; panX = 0; panY = 0;
+      selectedIndices = new Set();
       syncGutter();
       runScript();
-      el.createdDisplay.textContent = fmtDate(docMeta.created);
+      el.createdDisplay.textContent  = fmtDate(docMeta.created);
       el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
     }catch(err){
       el.statusDot.classList.add('err');
@@ -388,9 +390,11 @@ el.btnSave.addEventListener('click', () => {
   runScript();
   docMeta.modified = new Date();
   el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
+  const title = currentDoc ? currentDoc.title : '';
   const payload = {
-    title: currentDoc ? currentDoc.title : '',
-    units: currentDoc ? currentDoc.units : '',
+    id: slug(title) || 'drawing',
+    title,
+    description: '',
     created: docMeta.created.toISOString(),
     modified: docMeta.modified.toISOString(),
     script: el.script.value,
@@ -399,7 +403,7 @@ el.btnSave.addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = slug(payload.title) + '.json';
+  a.download = slug(title) + '.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
