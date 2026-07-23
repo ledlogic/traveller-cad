@@ -19,7 +19,7 @@ const DEFAULT_GRID = 1.5;
 const DEFAULT_WALL_WIDTH = 0.2;
 const DEFAULT_FEATURE_THICKNESS = 0.1;
 const DEFAULT_COMPONENT_THICKNESS = 0.03;  // line width for component shapes in world units
-const LABEL_FONT = '"Univers Normal"';
+const LABEL_FONT = "'Univers', sans-serif";
 const LABEL_WEIGHT = '300';
 
 const SAMPLE_SCRIPT =
