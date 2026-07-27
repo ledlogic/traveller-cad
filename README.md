@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v0.90
+- **Current version:** v0.92
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,8 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v0.92 | 2026-07-27 | venue.json purple colour scheme applied — wallcolor #5c3d7a, fills from #7b5a9e (feature) through #a88cc4 (ballroom) #cdb8e0 (secondary) to #e8dcf5 (tertiary) |
+| v0.91 | 2026-07-27 | `nowall` flag on `stairs:` suppresses the outer frame while keeping tread lines and gradient |
 | v0.90 | 2026-07-27 | Stair tread lines made much thinner — fixed scale-relative width capped at 1.2px so inner lines are clearly distinct from the outer frame |
 | v0.89 | 2026-07-27 | venue.json updated from uploaded file |
 | v0.88 | 2026-07-27 | Stair tread count now uses standard 0.19m riser height per building code — z=1m→6 treads, z=3m→16 treads, z=5m→27 treads |

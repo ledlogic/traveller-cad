@@ -346,9 +346,10 @@ function parseScript(text){
             { x: parts[9],  y: parts[10], z: parts[11] },
           ];
           const treadDepth = parts[12] || 0.3;
+          const nowall = /\bnowall\b/i.test(rest);
           const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
           const color = cm ? parseHex(cm[1]) : null;
-          doc.shapes.push({ type:'stairs', corners, treadDepth, color, lineNum,
+          doc.shapes.push({ type:'stairs', corners, treadDepth, nowall, color, lineNum,
             // bbox for anchor/info purposes
             x1: Math.min(...corners.map(c=>c.x)), y1: Math.min(...corners.map(c=>c.y)),
             x2: Math.max(...corners.map(c=>c.x)), y2: Math.max(...corners.map(c=>c.y)) });

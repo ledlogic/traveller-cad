@@ -676,15 +676,17 @@ function drawStairs(s, toScreen, scale, wallWidth, docWallColor){
   ctx.fill();
 
   // Outer frame
-  ctx.lineWidth = outerLw;
-  ctx.strokeStyle = color;
-  ctx.lineCap = 'square';
-  ctx.lineJoin = 'miter';
-  ctx.beginPath();
-  ctx.moveTo(slLx,slLy); ctx.lineTo(slRx,slRy);
-  ctx.lineTo(shRx,shRy); ctx.lineTo(shLx,shLy);
-  ctx.closePath();
-  ctx.stroke();
+  if (!s.nowall){
+    ctx.lineWidth = outerLw;
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'square';
+    ctx.lineJoin = 'miter';
+    ctx.beginPath();
+    ctx.moveTo(slLx,slLy); ctx.lineTo(slRx,slRy);
+    ctx.lineTo(shRx,shRy); ctx.lineTo(shLx,shLy);
+    ctx.closePath();
+    ctx.stroke();
+  }
 
   ctx.restore();
 }
