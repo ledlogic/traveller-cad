@@ -182,6 +182,42 @@ function insertPlaceCopy(idx){
 function r2(n){ return Math.round(n * 100) / 100; }
 
 /* ── mouse down ─────────────────────────────────────────────────── */
+// Jump editor caret to the line of the shape clicked in anchor mode
+function jumpToShapeAtScreen(clientX, clientY){
+  if (!viewport || !currentDoc) return false;
+  const rect = el.canvas.getBoundingClientRect();
+  const sx = clientX - rect.left, sy = clientY - rect.top;
+  const wx = viewport.x1 + (sx - viewport.offsetX) / viewport.scale;
+  const wy = viewport.y2 - (sy - viewport.offsetY) / viewport.scale;
+
+  // Find the topmost shape that contains the click point
+  const SHAPE_TYPES = ['rect','oval','semicircle','door','wall','stairs','hatch','image'];
+  const hit = [...currentDoc.shapes].reverse().find(s => {
+    if (!SHAPE_TYPES.includes(s.type) || s.lineNum === undefined) return false;
+    const x1 = Math.min(s.x1, s.x2), x2 = Math.max(s.x1, s.x2);
+    const y1 = Math.min(s.y1, s.y2), y2 = Math.max(s.y1, s.y2);
+    const pad = Math.max(0.3, (s.wallWidth || currentDoc.wallWidth || 0.3));
+    return wx >= x1 - pad && wx <= x2 + pad && wy >= y1 - pad && wy <= y2 + pad;
+  });
+
+  if (!hit) return false;
+
+  // Scroll textarea to that line and place caret there
+  const lines = el.script.value.split('\n');
+  let charPos = 0;
+  for (let i = 0; i < hit.lineNum - 1 && i < lines.length; i++){
+    charPos += lines[i].length + 1;
+  }
+  el.script.focus();
+  el.script.setSelectionRange(charPos, charPos + (lines[hit.lineNum - 1] || '').length);
+  // Scroll the line into view in the textarea
+  const lineHeight = el.script.scrollHeight / lines.length;
+  el.script.scrollTop = Math.max(0, (hit.lineNum - 4) * lineHeight);
+  cursorLineNum = hit.lineNum;
+  renderCanvas();
+  return true;
+}
+
 el.canvas.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
   const idx = findNearestPlacement(e.clientX, e.clientY);
@@ -220,6 +256,11 @@ el.canvas.addEventListener('mousedown', (e) => {
     renderCanvas();
   } else {
     selectedIndices = new Set();
+    // In anchor mode, try to jump editor caret to clicked shape
+    if (showAnchors && jumpToShapeAtScreen(e.clientX, e.clientY)){
+      updateInfoBar();
+      return;
+    }
     isPanning = true;
     panStartX = e.clientX; panStartY = e.clientY;
     panStartOffsetX = panX; panStartOffsetY = panY;
@@ -526,8 +567,14 @@ el.btnPng.addEventListener('click', () => {
     .filter(s => s.type === 'stairs')
     .forEach(s => drawStairs(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor));
   currentDoc.shapes
+    .filter(s => s.type === 'hatch')
+    .forEach(s => drawHatch(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor));
+  currentDoc.shapes
     .filter(s => s.type === 'label')
     .forEach(s => drawLabel(s, toScreen, exportScale, null, null, currentDoc.wallColor));
+  currentDoc.shapes
+    .filter(s => s.type === 'icon')
+    .forEach(s => drawIcon(s, toScreen, exportScale, currentDoc.wallColor));
 
   if (currentDoc.placements.length){
     drawPlacements(currentDoc.placements, currentDoc.parsedComponents,

@@ -152,10 +152,20 @@ function renderCanvas(){
     .filter(s => s.type === 'stairs')
     .forEach(s => drawStairs(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor));
 
+  // hatch fills
+  currentDoc.shapes
+    .filter(s => s.type === 'hatch')
+    .forEach(s => drawHatch(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor));
+
   // labels on top of everything
   currentDoc.shapes
     .filter(s => s.type === 'label')
     .forEach(s => drawLabel(s, toScreen, scale, hoverWx, hoverWy, currentDoc.wallColor));
+
+  // icons
+  currentDoc.shapes
+    .filter(s => s.type === 'icon')
+    .forEach(s => drawIcon(s, toScreen, scale, currentDoc.wallColor));
 
   // component placements
   if (currentDoc.placements.length){
@@ -267,7 +277,7 @@ function renderCanvas(){
     if (targetLineNum !== null){
       const hit = currentDoc.shapes.find(s =>
         s.lineNum === targetLineNum &&
-        ['rect','oval','semicircle','wall','door','stairs','image'].includes(s.type)
+        ['rect','oval','semicircle','wall','door','stairs','image','hatch'].includes(s.type)
       );
       if (hit){
         const [hx1, hy1] = toScreen(hit.x1, hit.y1);
@@ -439,7 +449,7 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
     const cx = (left+right)/2, cy = (top+bottom)/2;
     const hw = (right-left)/2, hh = (bottom-top)/2;
     const dir = s.dir || 'right';
-    const slw = Math.max(2, lw * scale);
+    const slw = Math.max(0.5, lw * scale);
     ctx.lineWidth = slw;
     ctx.strokeStyle = color;
 
@@ -469,7 +479,7 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
     }
   } else if (!s.nowall){
     shapePath(s, toScreen, scale);
-    ctx.lineWidth = Math.max(2, wallWidth * scale);
+    ctx.lineWidth = Math.max(0.5, lw * scale);
     ctx.strokeStyle = color;
     ctx.stroke();
   }
@@ -571,6 +581,36 @@ function drawDoor(s, toScreen, scale, wallWidth, docWallColor, featureThickness)
   corners.slice(1).forEach(c => ctx.lineTo(...c));
   ctx.closePath();
   ctx.stroke();
+
+  // Padlock symbol for locked doors
+  if (s.locked){
+    const [ax1, ay1] = toScreen(s.x1, s.y1);
+    const [ax2, ay2] = toScreen(s.x2, s.y2);
+    const mx = (ax1 + ax2) / 2, my = (ay1 + ay2) / 2;
+    const r = Math.max(4, Math.min(10, Math.hypot(ax2-ax1, ay2-ay1) * 0.22));
+    const isVertical = Math.abs(s.y2 - s.y1) > Math.abs(s.x2 - s.x1) * 2;
+    ctx.save();
+    ctx.translate(mx, my);
+    if (isVertical) ctx.rotate(Math.PI / 2);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = PAPER_COLOR;
+    ctx.lineWidth = Math.max(1, FEAT_T * scale * 0.6);
+    // shackle (arc on top)
+    ctx.beginPath();
+    ctx.arc(0, -r * 0.4, r * 0.55, Math.PI, 0);
+    ctx.stroke();
+    // body (small rect)
+    ctx.beginPath();
+    ctx.roundRect(-r * 0.7, -r * 0.3, r * 1.4, r * 1.1, 2);
+    ctx.fill();
+    ctx.stroke();
+    // keyhole dot
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(0, r * 0.15, r * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
 
   ctx.restore();
 }
@@ -691,6 +731,66 @@ function drawStairs(s, toScreen, scale, wallWidth, docWallColor){
   ctx.restore();
 }
 
+function drawHatch(s, toScreen, scale, wallWidth, docWallColor){
+  const color = s.color || docWallColor || WALL_COLOR;
+  const lw = Math.max(0.6, Math.min(1.5, scale * 0.012)); // thin lines
+  const spacing = Math.max(0.01, s.spacing || 0.5);
+  const angleDeg = s.angle || 45;
+  const angleRad = angleDeg * Math.PI / 180;
+
+  const [sx1, sy1] = toScreen(s.x1, s.y1);
+  const [sx2, sy2] = toScreen(s.x2, s.y2);
+  const left  = Math.min(sx1, sx2), right  = Math.max(sx1, sx2);
+  const top   = Math.min(sy1, sy2), bottom = Math.max(sy1, sy2);
+  const w = right - left, h = bottom - top;
+  if (w < 1 || h < 1) return;
+
+  const spacingPx = spacing * scale;
+
+  ctx.save();
+  // White base fill
+  ctx.fillStyle = PAPER_COLOR;
+  ctx.fillRect(left, top, w, h);
+
+  // Clip to rect
+  ctx.beginPath();
+  ctx.rect(left, top, w, h);
+  ctx.clip();
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'butt';
+
+  // Draw lines across a region large enough to cover the rect at any angle
+  const diag = Math.hypot(w, h);
+  const cx = left + w / 2, cy = top + h / 2;
+  const cos = Math.cos(angleRad), sin = Math.sin(angleRad);
+  // Perpendicular unit to the line direction
+  const px = -sin, py = cos;
+
+  // Step through offsets along the perpendicular
+  const nLines = Math.ceil(diag / spacingPx) + 2;
+  for (let i = -nLines; i <= nLines; i++){
+    const ox = cx + px * i * spacingPx;
+    const oy = cy + py * i * spacingPx;
+    // Line through (ox,oy) in direction (cos,sin), long enough to cross the rect
+    ctx.beginPath();
+    ctx.moveTo(ox - cos * diag, oy - sin * diag);
+    ctx.lineTo(ox + cos * diag, oy + sin * diag);
+    ctx.stroke();
+  }
+
+  // Outer frame
+  ctx.restore();
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1.5, wallWidth * scale);
+  ctx.lineCap = 'square';
+  ctx.strokeRect(left, top, w, h);
+  ctx.restore();
+}
+
+
 function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
   const baseColor = s.color || docWallColor || WALL_COLOR;
   const [sx1, sy1] = toScreen(s.x1, s.y1);
@@ -698,7 +798,9 @@ function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
   const left = Math.min(sx1, sx2), right = Math.max(sx1, sx2);
   const top = Math.min(sy1, sy2), bottom = Math.max(sy1, sy2);
   const boxW = right - left, boxH = bottom - top;
-  if (boxW < 3 || boxH < 3) return;
+  // Only skip if the box is genuinely degenerate in world space (not just small on screen)
+  const worldW = Math.abs(s.x2 - s.x1), worldH = Math.abs(s.y2 - s.y1);
+  if (worldW < 0.01 && worldH < 0.01) return;
 
   // check if mouse is inside the label box (in world coords)
   const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
@@ -708,10 +810,21 @@ function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
     hoverWy >= minY && hoverWy <= maxY;
 
   const text = s.text.toUpperCase();
-  const cx = (left + right) / 2, cy = (top + bottom) / 2;
+  const cx = (left + right) / 2 + (s.textOffsetX || 0) * scale;
+  const cy = (top + bottom) / 2 - (s.textOffsetY || 0) * scale; // Y flipped
+
+  // Auto-rotate text for vertical shapes (doors/walls) when no explicit rotation is set
+  let textRotation = s.textRotation;
+  if (textRotation === undefined){
+    const worldW = Math.abs(s.x2 - s.x1);
+    const worldH = Math.abs(s.y2 - s.y1);
+    if (s.type === 'door' || s.type === 'wall'){
+      if (worldH > worldW * 2) textRotation = Math.PI / 2;  // vertical → rotate 90°
+    }
+  }
   const worldBoxH = Math.abs(s.y2 - s.y1);
-  const fontSize = worldBoxH * scale * 0.35;
-  if (fontSize < 4) return;
+  const fontSize = worldBoxH * scale * (s.secondary ? 0.5 : 0.35);
+  if (fontSize < 2) return;
 
   ctx.save();
 
@@ -728,15 +841,98 @@ function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = `${LABEL_WEIGHT} ${fontSize}px ${LABEL_FONT}`;
-  if (s.textRotation){
+  if (textRotation){
     ctx.translate(cx, cy);
-    ctx.rotate(-s.textRotation); // negate: canvas Y is flipped vs math convention
+    ctx.rotate(-textRotation);
     ctx.fillText(text, 0, fontSize * 0.03);
   } else {
     ctx.fillText(text, cx, cy + fontSize * 0.03);
   }
   ctx.restore();
 }
+
+function drawIcon(s, toScreen, scale, docWallColor){
+  const [sx, sy] = toScreen(s.x, s.y);
+  const r = Math.max(5, Math.min(18, scale * 0.6)); // icon radius in px
+  const color = s.color || docWallColor || WALL_COLOR;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = Math.max(1, r * 0.12);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  switch(s.icon){
+    case 'eye': {
+      // Almond eye shape with pupil
+      ctx.beginPath();
+      ctx.moveTo(sx - r, sy);
+      ctx.bezierCurveTo(sx - r * 0.5, sy - r * 0.6, sx + r * 0.5, sy - r * 0.6, sx + r, sy);
+      ctx.bezierCurveTo(sx + r * 0.5, sy + r * 0.6, sx - r * 0.5, sy + r * 0.6, sx - r, sy);
+      ctx.closePath();
+      ctx.stroke();
+      // Pupil
+      ctx.beginPath();
+      ctx.arc(sx, sy, r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'camera': {
+      // Camera body
+      const bw = r * 1.6, bh = r * 1.1;
+      ctx.strokeRect(sx - bw/2, sy - bh/2, bw, bh);
+      // Lens circle
+      ctx.beginPath();
+      ctx.arc(sx, sy, r * 0.38, 0, Math.PI * 2);
+      ctx.stroke();
+      // Viewfinder bump on top
+      ctx.fillRect(sx - r * 0.3, sy - bh/2 - r * 0.28, r * 0.6, r * 0.28);
+      break;
+    }
+    case 'restricted':
+    case 'no-entry': {
+      // Circle with horizontal bar (no-entry symbol)
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.lineWidth = Math.max(2, r * 0.28);
+      ctx.beginPath();
+      ctx.moveTo(sx - r * 0.6, sy); ctx.lineTo(sx + r * 0.6, sy);
+      ctx.stroke();
+      break;
+    }
+    case 'star': {
+      // 5-point star
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++){
+        const a = (i * 4 * Math.PI / 5) - Math.PI / 2;
+        const b = a + 2 * Math.PI / 10;
+        if (i === 0) ctx.moveTo(sx + r * Math.cos(a), sy + r * Math.sin(a));
+        else ctx.lineTo(sx + r * Math.cos(a), sy + r * Math.sin(a));
+        ctx.lineTo(sx + r * 0.4 * Math.cos(b), sy + r * 0.4 * Math.sin(b));
+      }
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'warning': {
+      // Triangle with exclamation
+      ctx.beginPath();
+      ctx.moveTo(sx, sy - r);
+      ctx.lineTo(sx + r * 0.9, sy + r * 0.6);
+      ctx.lineTo(sx - r * 0.9, sy + r * 0.6);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillRect(sx - r * 0.08, sy - r * 0.4, r * 0.16, r * 0.7);
+      ctx.beginPath();
+      ctx.arc(sx, sy + r * 0.45, r * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+  }
+  ctx.restore();
+}
+
 
 function drawAnchors(s, toScreen, hoverWx, hoverWy){
   const CROSS = 5;

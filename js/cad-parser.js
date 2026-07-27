@@ -105,8 +105,30 @@ function parseScript(text){
 
       // find last non-label shape so chained ^ commands all target the same rect/oval/etc
       const prev = [...doc.shapes].reverse().find(s =>
-        ['rect','oval','semicircle','wall','door','image'].includes(s.type));
+        ['rect','oval','semicircle','wall','door','image','hatch','stairs'].includes(s.type));
       if (!prev){ errors.push({lineNum, msg:'^ has no preceding shape'}); return; }
+
+      // ^nowall — suppress outline on the previous shape
+      if (rest.toLowerCase() === 'nowall'){
+        prev.nowall = true;
+        return;
+      }
+
+      // ^locked — marks the previous door as locked; draws a padlock symbol
+      if (rest.toLowerCase() === 'locked' || rest.toLowerCase().startsWith('locked')){
+        if (prev.type !== 'door') errors.push({lineNum, msg:'^locked only applies to door shapes'});
+        else prev.locked = true;
+        return;
+      }
+
+      // ^wallcolor: #hex — override outline/wall colour for the previous shape only
+      if (rest.toLowerCase().startsWith('wallcolor:')){
+        try {
+          const hex = rest.slice(10).trim().replace(/^#/,'');
+          prev.color = parseHex(hex);
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
+        return;
+      }
 
       // ^bg: #hex — background colour
       if (rest.toLowerCase().startsWith('bg:')){
@@ -178,6 +200,18 @@ function parseScript(text){
         return;
       }
 
+      // ^textoffset: dx, dy — shift the label centre before rotation (world units)
+      if (rest.toLowerCase().startsWith('textoffset:')){
+        try {
+          const n = parseNumbers(rest.slice(11).trim(), 2);
+          const prevLabel = [...doc.shapes].reverse().find(s => s.type === 'label');
+          if (!prevLabel) throw new Error('no preceding label');
+          prevLabel.textOffsetX = (prevLabel.textOffsetX || 0) + n[0];
+          prevLabel.textOffsetY = (prevLabel.textOffsetY || 0) + n[1];
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
       // ^rotate-text: angleDeg — rotates just the label text, not the shape
       if (rest.toLowerCase().startsWith('rotate-text:')){
         try {
@@ -215,12 +249,41 @@ function parseScript(text){
         const text = rest.slice(5).trim();
         const cx = (prev.x1 + prev.x2) / 2;
         const cy = (prev.y1 + prev.y2) / 2;
-        const hw = Math.abs(prev.x2 - prev.x1) / 2;
+        const xSpan = Math.abs(prev.x2 - prev.x1);
+        const ySpan = Math.abs(prev.y2 - prev.y1);
+        const hw = Math.max(xSpan, ySpan) / 2;
         doc.shapes.push({
           type:'label',
           x1: cx - hw, y1: cy - 1, x2: cx + hw, y2: cy + 1,
           text, lineNum
         });
+        return;
+      }
+
+      // ^text2: text — smaller secondary label, placed below ^text:
+      if (rest.toLowerCase().startsWith('text2:')){
+        const text = rest.slice(6).trim();
+        const cx = (prev.x1 + prev.x2) / 2;
+        const cy = (prev.y1 + prev.y2) / 2;
+        const xSpan = Math.abs(prev.x2 - prev.x1);
+        const ySpan = Math.abs(prev.y2 - prev.y1);
+        const hw = Math.max(xSpan, ySpan) / 2;
+        // Place below centre, smaller box (0.6 scale)
+        doc.shapes.push({
+          type:'label',
+          x1: cx - hw, y1: cy - 2.5, x2: cx + hw, y2: cy - 0.5,
+          text, lineNum, secondary: true
+        });
+        return;
+      }
+
+      // ^icon: name — draw a small icon centred on the previous shape
+      // Supported: eye, camera, restricted, star, warning
+      if (rest.toLowerCase().startsWith('icon:')){
+        const iconName = rest.slice(5).trim().toLowerCase();
+        const cx = (prev.x1 + prev.x2) / 2;
+        const cy = (prev.y1 + prev.y2) / 2;
+        doc.shapes.push({ type:'icon', x: cx, y: cy, icon: iconName, lineNum });
         return;
       }
 
@@ -331,12 +394,20 @@ function parseScript(text){
           doc.shapes.push({ type:'door', x1:n[0], y1:n[1], x2:n[2], y2:n[3], color, lineNum });
           break;
         }
+        case 'hatch': {
+          // hatch: x1, y1, x2, y2, angle, spacing [, #hex]
+          const n = parseNumbers(rest, 6);
+          const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+          const color = cm ? parseHex(cm[1]) : null;
+          doc.shapes.push({
+            type:'hatch', x1:n[0], y1:n[1], x2:n[2], y2:n[3],
+            angle:n[4], spacing:n[5], color, lineNum
+          });
+          break;
+        }
         case 'stairs':
         case 'stair': {
           // stairs: x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4 [, treadDepth]
-          // Corners given in order: bottom-left, bottom-right, top-right, top-left (world space).
-          // Z values determine which edge is the bottom (low Z) and which is the top (high Z).
-          // Treads are drawn perpendicular to the travel direction.
           const parts = rest.split(/[\s,]+/).filter(Boolean).map(parseFloat);
           if (parts.length < 12) throw new Error(`stairs: expected x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4`);
           const corners = [

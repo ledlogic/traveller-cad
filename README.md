@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v0.93
+- **Current version:** v1.09
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,22 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.09 | 2026-07-27 | venue.json colour scheme changed to naval blue/aqua — wallcolor #1e4a6e, fills from #4a8fa8 (primary) through #6db4c8 (secondary) #a8d8e8 (tertiary) to #d4eef5 (lightest) |
+| v1.08 | 2026-07-27 | venue.json updated — arches, pods, lifts, observation terraces, staff corridors, security hub; fixed `^rotatetext` typo |
+| v1.07 | 2026-07-27 | Click on shape in Anchor mode jumps editor caret to that shape's line and scrolls it into view |
+| v1.06 | 2026-07-27 | `^wallcolor: #hex` per-shape outline colour override |
+| v1.05 | 2026-07-27 | `^text2: text` secondary label below main label at smaller size; `^icon: name` draws eye/camera/restricted/star/warning symbol centred on shape |
+| v1.04 | 2026-07-27 | Fixed `^wallwidth:` not working — `Math.max(2, ...)` was clamping all outlines to 2px minimum; lowered to 0.5px so thin values like 0.05 take effect |
+| v1.03 | 2026-07-27 | Padlock symbol rotates 90° automatically for vertical locked doors |
+| v1.02 | 2026-07-27 | Auto-rotate label text for vertical doors and walls — no need for `^rotate-text: 90` when the shape is taller than wide; explicit `^rotate-text:` still overrides |
+| v1.01 | 2026-07-27 | Fixed `lw is not defined` crash in `drawDoor` padlock rendering |
+| v1.00 | 2026-07-27 | Fixed labels not showing — `drawLabel` was bailing on small screen pixel sizes; now checks world units instead; fontSize minimum lowered to 2px |
+| v0.99 | 2026-07-27 | Fixed missing labels — `^nowall` was unknown causing a parse error; added `^nowall` as a valid `^` modifier; also added `^nowall` to reference |
+| v0.98 | 2026-07-27 | venue.json updated from uploaded file |
+| v0.97 | 2026-07-27 | `^locked` attribute on `door:` draws a padlock symbol at the door midpoint |
+| v0.96 | 2026-07-27 | `door:` now supports `^text:`, `^textoffset:`, `^rotate-text:` etc; `^text:` uses longer dimension for label width on thin shapes (doors/walls); `hatch` and `stairs` added to ^ and cursor-highlight shape lists |
+| v0.95 | 2026-07-27 | `^textoffset: dx, dy` shifts label centre in world units before `^rotate-text:` rotation |
+| v0.94 | 2026-07-27 | `hatch: x1,y1,x2,y2,angle,spacing` — diagonal line fill for solid walls/structural zones; angle in degrees, spacing in world units |
 | v0.93 | 2026-07-27 | venue.json merged — uploaded layout (stairs, doors, curtain, chat rooms, catering) combined with purple colour scheme |
 | v0.92 | 2026-07-27 | venue.json purple colour scheme applied — wallcolor #5c3d7a, fills from #7b5a9e (feature) through #a88cc4 (ballroom) #cdb8e0 (secondary) to #e8dcf5 (tertiary) |
 | v0.91 | 2026-07-27 | `nowall` flag on `stairs:` suppresses the outer frame while keeping tread lines and gradient |
