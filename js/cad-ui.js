@@ -15,7 +15,66 @@ function syncGutter(){
 el.script.addEventListener('scroll', () => { el.gutter.scrollTop = el.script.scrollTop; });
 
 /* ============================= run pipeline ============================= */
+function formatScript(text){
+  const SHAPE_CMDS = new Set(['rect','oval','semicircle','wall','door','image','label','text','place']);
+
+  function isShapeLine(line){
+    const t = line.trim().toLowerCase();
+    return SHAPE_CMDS.has(t.split(/[\s:]/)[0]);
+  }
+
+  const lines = text.split('\n');
+  const out = [];
+
+  for (let i = 0; i < lines.length; i++){
+    const line = lines[i];
+    const trimmed = line.trim();
+    const isSectionComment = /^#\s*──/.test(trimmed);
+
+    // Ensure exactly one blank line before # ── section comments
+    if (isSectionComment && out.length > 0 && out[out.length - 1].trim() !== ''){
+      out.push('');
+    }
+
+    // Ensure blank line between consecutive shape-starting lines
+    // (i.e. when current line starts a shape and previous non-blank output line also started a shape)
+    if (isShapeLine(line) && out.length > 0){
+      // find previous non-empty line in out
+      let prevIdx = out.length - 1;
+      while (prevIdx >= 0 && out[prevIdx].trim() === '') prevIdx--;
+      if (prevIdx >= 0 && isShapeLine(out[prevIdx]) && out[out.length - 1].trim() !== ''){
+        out.push('');
+      }
+    }
+
+    out.push(line);
+  }
+
+  // Collapse 2+ consecutive blank lines down to 1
+  const collapsed = [];
+  let blankCount = 0;
+  for (const line of out){
+    if (line.trim() === ''){
+      blankCount++;
+      if (blankCount <= 1) collapsed.push(line);
+    } else {
+      blankCount = 0;
+      collapsed.push(line);
+    }
+  }
+  return collapsed.join('\n');
+}
+
 function runScript(){
+  // Auto-format before parsing — updates editor if content changed
+  const formatted = formatScript(el.script.value);
+  if (formatted !== el.script.value){
+    const sel = [el.script.selectionStart, el.script.selectionEnd];
+    el.script.value = formatted;
+    el.script.selectionStart = sel[0];
+    el.script.selectionEnd = sel[1];
+  }
+
   const { doc, errors } = parseScript(el.script.value);
   currentDoc = doc;
 

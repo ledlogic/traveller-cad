@@ -101,22 +101,84 @@ function parseScript(text){
     // ^ command — auto-label, background colour, or background image on the previous shape
     if (line.startsWith('^')){
       const rest = line.slice(1).trim();
-      if (!rest){ errors.push({lineNum, msg:'^ needs text, #hex, or img: url'}); return; }
+      if (!rest){ errors.push({lineNum, msg:'^ needs text, #hex, img:, ^translate:, or ^rotate:'}); return; }
 
-      // find last applicable shape
+      // find last non-label shape so chained ^ commands all target the same rect/oval/etc
       const prev = [...doc.shapes].reverse().find(s =>
-        ['rect','oval','semicircle','door','wall','image'].includes(s.type));
+        ['rect','oval','semicircle','wall','door','image'].includes(s.type));
       if (!prev){ errors.push({lineNum, msg:'^ has no preceding shape'}); return; }
 
-      // ^#hex — set background colour on the previous shape
+      // ^#hex — background colour
       if (/^#[0-9a-fA-F]{3,6}$/.test(rest)){
         try { prev.bgColor = parseHex(rest.slice(1)); } catch(e) { errors.push({lineNum, msg: e.message}); }
         return;
       }
 
-      // ^img: url — set background image on the previous shape
+      // ^img: url — background image
       if (rest.toLowerCase().startsWith('img:')){
         prev.bgImage = rest.slice(4).trim();
+        return;
+      }
+
+      // ^translate: dx, dy — shift in world coordinates
+      if (rest.toLowerCase().startsWith('translate:')){
+        try {
+          const n = parseNumbers(rest.slice(10).trim(), 2);
+          prev.x1 += n[0]; prev.x2 += n[0];
+          prev.y1 += n[1]; prev.y2 += n[1];
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
+      // ^elev: meters — set elevation on previous shape; affects fill lightness
+      if (rest.toLowerCase().startsWith('elev:')){
+        try {
+          const v = parseFloat(rest.slice(5).trim());
+          if (Number.isNaN(v)) throw new Error('elevation must be a number');
+          prev.elev = v;
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
+      // ^wallwidth: value — override wall thickness for the previous shape
+      if (rest.toLowerCase().startsWith('wallwidth:')){
+        try {
+          const v = parseFloat(rest.slice(10).trim());
+          if (Number.isNaN(v) || v <= 0) throw new Error('wallwidth must be a positive number');
+          prev.wallWidth = v;
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
+      // ^rotate-text: angleDeg — rotates just the label text, not the shape
+      if (rest.toLowerCase().startsWith('rotate-text:')){
+        try {
+          const deg = parseFloat(rest.slice(12).trim());
+          if (Number.isNaN(deg)) throw new Error('invalid angle');
+          // find the most recent label shape
+          const prevLabel = [...doc.shapes].reverse().find(s => s.type === 'label');
+          if (!prevLabel) throw new Error('no preceding label to rotate');
+          prevLabel.textRotation = deg * Math.PI / 180;
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
+      // ^rotate: angleDeg [, cx, cy]
+      if (rest.toLowerCase().startsWith('rotate:')){
+        try {
+          const parts = rest.slice(7).trim().split(/[\s,]+/).filter(Boolean);
+          if (!parts.length) throw new Error('expected: angleDeg [, cx, cy]');
+          const angleDeg = parseFloat(parts[0]);
+          if (Number.isNaN(angleDeg)) throw new Error('invalid angle');
+          const angle = angleDeg * Math.PI / 180;
+          const cos = Math.cos(angle), sin = Math.sin(angle);
+          const pcx = parts.length >= 3 ? parseFloat(parts[1]) : (prev.x1 + prev.x2) / 2;
+          const pcy = parts.length >= 3 ? parseFloat(parts[2]) : (prev.y1 + prev.y2) / 2;
+          const rotPt = (x, y) => [pcx+(x-pcx)*cos-(y-pcy)*sin, pcy+(x-pcx)*sin+(y-pcy)*cos];
+          const corners = [rotPt(prev.x1,prev.y1),rotPt(prev.x2,prev.y1),rotPt(prev.x1,prev.y2),rotPt(prev.x2,prev.y2)];
+          prev.x1 = Math.min(...corners.map(p=>p[0])); prev.x2 = Math.max(...corners.map(p=>p[0]));
+          prev.y1 = Math.min(...corners.map(p=>p[1])); prev.y2 = Math.max(...corners.map(p=>p[1]));
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
         return;
       }
 
@@ -238,6 +300,29 @@ function parseScript(text){
           doc.shapes.push({ type:'door', x1:n[0], y1:n[1], x2:n[2], y2:n[3], color, lineNum });
           break;
         }
+        case 'stairs':
+        case 'stair': {
+          // stairs: x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4 [, treadDepth]
+          // Corners given in order: bottom-left, bottom-right, top-right, top-left (world space).
+          // Z values determine which edge is the bottom (low Z) and which is the top (high Z).
+          // Treads are drawn perpendicular to the travel direction.
+          const parts = rest.split(/[\s,]+/).filter(Boolean).map(parseFloat);
+          if (parts.length < 12) throw new Error(`stairs: expected x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4`);
+          const corners = [
+            { x: parts[0],  y: parts[1],  z: parts[2]  },
+            { x: parts[3],  y: parts[4],  z: parts[5]  },
+            { x: parts[6],  y: parts[7],  z: parts[8]  },
+            { x: parts[9],  y: parts[10], z: parts[11] },
+          ];
+          const treadDepth = parts[12] || 0.3;
+          const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+          const color = cm ? parseHex(cm[1]) : null;
+          doc.shapes.push({ type:'stairs', corners, treadDepth, color, lineNum,
+            // bbox for anchor/info purposes
+            x1: Math.min(...corners.map(c=>c.x)), y1: Math.min(...corners.map(c=>c.y)),
+            x2: Math.max(...corners.map(c=>c.x)), y2: Math.max(...corners.map(c=>c.y)) });
+          break;
+        }
         case 'place': {
           // place: componentName, x, y [, scale [, angleDeg]]
           // x,y = world position of component origin
@@ -279,35 +364,6 @@ function parseScript(text){
             x1:parseFloat(m2[1]), y1:parseFloat(m2[2]), x2:parseFloat(m2[3]), y2:parseFloat(m2[4]),
             src, img:null, lineNum
           });
-          break;
-        }
-        case 'rotate': {
-          // rotate: angleDeg [, cx, cy] — rotates previous shape's bbox around its centre or given point
-          const parts = rest.split(/[\s,]+/).filter(Boolean);
-          if (!parts.length) throw new Error('expected: angleDeg [, cx, cy]');
-          const angleDeg = parseFloat(parts[0]);
-          if (Number.isNaN(angleDeg)) throw new Error('invalid angle');
-          const prev = [...doc.shapes].reverse().find(s =>
-            ['rect','oval','semicircle','wall','door','label','image'].includes(s.type));
-          if (!prev) throw new Error('no preceding shape to rotate');
-          const angle = angleDeg * Math.PI / 180;
-          const cos = Math.cos(angle), sin = Math.sin(angle);
-          const pcx = parts.length >= 3 ? parseFloat(parts[1]) : (prev.x1 + prev.x2) / 2;
-          const pcy = parts.length >= 3 ? parseFloat(parts[2]) : (prev.y1 + prev.y2) / 2;
-          const rotPt = (x, y) => [pcx+(x-pcx)*cos-(y-pcy)*sin, pcy+(x-pcx)*sin+(y-pcy)*cos];
-          const corners = [rotPt(prev.x1,prev.y1),rotPt(prev.x2,prev.y1),rotPt(prev.x1,prev.y2),rotPt(prev.x2,prev.y2)];
-          prev.x1 = Math.min(...corners.map(p=>p[0])); prev.x2 = Math.max(...corners.map(p=>p[0]));
-          prev.y1 = Math.min(...corners.map(p=>p[1])); prev.y2 = Math.max(...corners.map(p=>p[1]));
-          break;
-        }
-        case 'translate': {
-          // translate: dx, dy — shifts the previous shape by (dx, dy)
-          const n = parseNumbers(rest, 2);
-          const prev = [...doc.shapes].reverse().find(s =>
-            ['rect','oval','semicircle','wall','door','label','image'].includes(s.type));
-          if (!prev) throw new Error('no preceding shape to translate');
-          prev.x1 += n[0]; prev.x2 += n[0];
-          prev.y1 += n[1]; prev.y2 += n[1];
           break;
         }
         default:

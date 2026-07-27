@@ -126,10 +126,16 @@ function renderCanvas(){
     .filter(s => s.type === 'image')
     .forEach(s => drawImageShape(s, toScreen));
 
+  // compute elevation range for tinting
+  const elevShapes = currentDoc.shapes.filter(s => s.elev !== undefined);
+  const elevMin = elevShapes.length ? Math.min(...elevShapes.map(s => s.elev)) : 0;
+  const elevMax = elevShapes.length ? Math.max(...elevShapes.map(s => s.elev)) : 0;
+  const elevRange = Math.max(elevMax - elevMin, 1);
+
   // structures first (fill + grid + outline)
   currentDoc.shapes
     .filter(s => s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle')
-    .forEach(s => drawStructure(s, toScreen, scale, currentDoc.gridSize, currentDoc.wallWidth, currentDoc.wallColor));
+    .forEach(s => drawStructure(s, toScreen, scale, currentDoc.gridSize, currentDoc.wallWidth, currentDoc.wallColor, elevMin, elevRange));
 
   // walls on top
   currentDoc.shapes
@@ -140,6 +146,11 @@ function renderCanvas(){
   currentDoc.shapes
     .filter(s => s.type === 'door')
     .forEach(s => drawDoor(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor, currentDoc.featureThickness));
+
+  // stairs
+  currentDoc.shapes
+    .filter(s => s.type === 'stairs')
+    .forEach(s => drawStairs(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor));
 
   // labels on top of everything
   currentDoc.shapes
@@ -227,7 +238,53 @@ function renderCanvas(){
     });
   }
 
-  // status line
+  // cursor highlight — only when cursor is on a shape line or a ^ line after a shape
+  if (cursorLineNum > 0 && currentDoc.shapes){
+    const scriptLines = el.script.value.split('\n');
+    const cursorLine = (scriptLines[cursorLineNum - 1] || '').trim();
+    const SHAPE_CMDS = new Set(['rect','oval','semicircle','wall','door','stairs','image','label','text']);
+
+    const isShapeLine = (l) => {
+      const key = l.trim().toLowerCase().split(/[\s:]/)[0];
+      return SHAPE_CMDS.has(key);
+    };
+    const isCaretLine = (l) => l.trim().startsWith('^');
+
+    // Only proceed if cursor is on a shape line OR a ^ line
+    let targetLineNum = null;
+    if (isShapeLine(cursorLine)){
+      targetLineNum = cursorLineNum;
+    } else if (isCaretLine(cursorLine)){
+      // Walk backwards to find the shape line this ^ belongs to
+      for (let i = cursorLineNum - 2; i >= 0; i--){
+        const prev = (scriptLines[i] || '').trim();
+        if (prev === '' || prev.startsWith('#')) break; // gap — not connected
+        if (isShapeLine(prev)){ targetLineNum = i + 1; break; }
+        if (!isCaretLine(prev)) break; // unexpected command — stop
+      }
+    }
+
+    if (targetLineNum !== null){
+      const hit = currentDoc.shapes.find(s =>
+        s.lineNum === targetLineNum &&
+        ['rect','oval','semicircle','wall','door','stairs','image'].includes(s.type)
+      );
+      if (hit){
+        const [hx1, hy1] = toScreen(hit.x1, hit.y1);
+        const [hx2, hy2] = toScreen(hit.x2, hit.y2);
+        const left = Math.min(hx1,hx2) - 4, top  = Math.min(hy1,hy2) - 4;
+        const w    = Math.abs(hx2-hx1) + 8, h    = Math.abs(hy2-hy1) + 8;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(251,173,96,0.9)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 3]);
+        ctx.strokeRect(left, top, w, h);
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    }
+  }
+
   // world border — thin teal hairline at exact world extents
   {
     const [bx1, by1] = toScreen(x1, y2); // top-left in screen space
@@ -329,31 +386,39 @@ function shapePath(s, toScreen, scale){
   }
 }
 
-function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor){
+function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, elevMin, elevRange){
   const color = s.color || docWallColor || WALL_COLOR;
+  const lw = s.wallWidth !== undefined ? s.wallWidth : wallWidth;
+
+  // Elevation tinting — higher = lighter, lower = darker
+  // Blend range: ±25% lightness shift maximum
+  let fillColor = PAPER_COLOR;
+  if (s.bgColor){
+    fillColor = s.bgColor;
+  } else if (s.elev !== undefined && elevRange > 0){
+    // Normalise 0..1 over the elevation range
+    const t = (s.elev - elevMin) / elevRange; // 0 = lowest, 1 = highest
+    // Lighten toward #ffffff (high) or darken toward #c8d8e0 (low)
+    const light = Math.round(255 - (1 - t) * 40);  // 215..255
+    fillColor = `rgb(${light},${light + Math.round(t*8)},${light + Math.round(t*16)})`;
+  }
   ctx.save();
   shapePath(s, toScreen, scale);
-  ctx.fillStyle = PAPER_COLOR;
+  ctx.fillStyle = fillColor;
   ctx.fill();
 
-  // Background colour or image, clipped to shape
-  if (s.bgColor || s.bgImage){
+  // Background image on top of fill, clipped to shape
+  if (s.bgImage){
     ctx.save();
     shapePath(s, toScreen, scale);
     ctx.clip();
-    if (s.bgColor){
-      ctx.fillStyle = s.bgColor;
-      ctx.fill();
-    }
-    if (s.bgImage){
-      const cached = loadImage(s.bgImage);
-      if (cached instanceof HTMLImageElement){
-        const [sx1, sy1] = toScreen(s.x1, s.y1);
-        const [sx2, sy2] = toScreen(s.x2, s.y2);
-        const left = Math.min(sx1,sx2), top = Math.min(sy1,sy2);
-        const w = Math.abs(sx2-sx1), h = Math.abs(sy2-sy1);
-        ctx.drawImage(cached, left, top, w, h);
-      }
+    const cached = loadImage(s.bgImage);
+    if (cached instanceof HTMLImageElement){
+      const [sx1, sy1] = toScreen(s.x1, s.y1);
+      const [sx2, sy2] = toScreen(s.x2, s.y2);
+      const left = Math.min(sx1,sx2), top = Math.min(sy1,sy2);
+      const w = Math.abs(sx2-sx1), h = Math.abs(sy2-sy1);
+      ctx.drawImage(cached, left, top, w, h);
     }
     ctx.restore();
   }
@@ -372,8 +437,8 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor){
     const cx = (left+right)/2, cy = (top+bottom)/2;
     const hw = (right-left)/2, hh = (bottom-top)/2;
     const dir = s.dir || 'right';
-    const lw = Math.max(2, wallWidth * scale);
-    ctx.lineWidth = lw;
+    const slw = Math.max(2, lw * scale);
+    ctx.lineWidth = slw;
     ctx.strokeStyle = color;
 
     const suppressDomeArc = (dir==='right'  && s.noleft)   ||
@@ -508,6 +573,112 @@ function drawDoor(s, toScreen, scale, wallWidth, docWallColor, featureThickness)
   ctx.restore();
 }
 
+function drawStairs(s, toScreen, scale, wallWidth, docWallColor){
+  if (!s.corners || s.corners.length < 4) return;
+  const color = s.color || docWallColor || WALL_COLOR;
+  const outerLw = Math.max(1.5, (s.wallWidth || wallWidth) * scale);
+  const treadLw = Math.max(0.8, outerLw * 0.4);
+
+  const c = s.corners; // [0..3] in order given
+
+  // Find the two edges: each edge connects two adjacent corners (0-1, 1-2, 2-3, 3-0)
+  // The "low" edge is the one whose average Z is smallest, "high" is largest.
+  const edges = [
+    { a: c[0], b: c[1] },
+    { a: c[1], b: c[2] },
+    { a: c[2], b: c[3] },
+    { a: c[3], b: c[0] },
+  ].map(e => ({ ...e, avgZ: (e.a.z + e.b.z) / 2 }));
+
+  // Sort edges by avgZ to find low and high
+  const sorted = [...edges].sort((a,b) => a.avgZ - b.avgZ);
+  const lowEdge  = sorted[0];
+  const highEdge = sorted[sorted.length - 1];
+
+  // Screen coords for low and high edge endpoints
+  const [laX, laY] = toScreen(lowEdge.a.x,  lowEdge.a.y);
+  const [lbX, lbY] = toScreen(lowEdge.b.x,  lowEdge.b.y);
+  const [haX, haY] = toScreen(highEdge.a.x, highEdge.a.y);
+  const [hbX, hbY] = toScreen(highEdge.b.x, highEdge.b.y);
+
+  // Match endpoints: pair each low endpoint with the nearer high endpoint
+  // so tread lines go straight across without crossing
+  const d00 = Math.hypot(laX-haX, laY-haY) + Math.hypot(lbX-hbX, lbY-hbY);
+  const d01 = Math.hypot(laX-hbX, laY-hbY) + Math.hypot(lbX-haX, lbY-haY);
+  let slLx, slLy, slRx, slRy, shLx, shLy, shRx, shRy;
+  if (d00 <= d01){
+    [slLx,slLy] = [laX,laY]; [slRx,slRy] = [lbX,lbY];
+    [shLx,shLy] = [haX,haY]; [shRx,shRy] = [hbX,hbY];
+  } else {
+    [slLx,slLy] = [laX,laY]; [slRx,slRy] = [lbX,lbY];
+    [shLx,shLy] = [hbX,hbY]; [shRx,shRy] = [haX,haY];
+  }
+
+  // White fill
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(slLx,slLy); ctx.lineTo(slRx,slRy);
+  ctx.lineTo(shRx,shRy); ctx.lineTo(shLx,shLy);
+  ctx.closePath();
+  ctx.fillStyle = PAPER_COLOR;
+  ctx.fill();
+
+  // Tread lines — evenly spaced parallel lines from low to high
+  const zLow  = lowEdge.avgZ;
+  const zHigh = highEdge.avgZ;
+  const zDiff = Math.max(Math.abs(zHigh - zLow), 0.01);
+  const treadDepth = s.treadDepth || 0.3;
+  const nTreads = Math.max(2, Math.round(zDiff / treadDepth));
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = treadLw;
+  ctx.lineCap = 'butt';
+
+  // Draw nTreads-1 interior lines (the low and high edges are the outer frame)
+  for (let i = 1; i < nTreads; i++){
+    const t = i / nTreads;
+    const lx = slLx + (shLx - slLx) * t;
+    const ly = slLy + (shLy - slLy) * t;
+    const rx = slRx + (shRx - slRx) * t;
+    const ry = slRy + (shRy - slRy) * t;
+    ctx.beginPath();
+    ctx.moveTo(lx, ly); ctx.lineTo(rx, ry);
+    ctx.stroke();
+  }
+
+  // Direction arrow — small triangle at the low end, pointing toward high end
+  const midLowX = (slLx + slRx) / 2, midLowY = (slLy + slRy) / 2;
+  const midHiX  = (shLx + shRx) / 2, midHiY  = (shLy + shRy) / 2;
+  const dx = midHiX - midLowX, dy = midHiY - midLowY;
+  const dlen = Math.hypot(dx, dy) || 1;
+  const ux = dx/dlen, uy = dy/dlen;
+  const nx2 = -uy, ny2 = ux;
+  const aLen = Math.min(dlen * 0.25, 14);
+  const aW   = aLen * 0.45;
+  const ax   = midLowX + ux * aLen * 0.25;
+  const ay   = midLowY + uy * aLen * 0.25;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(ax + ux*aLen, ay + uy*aLen);
+  ctx.lineTo(ax + nx2*aW,  ay + ny2*aW);
+  ctx.lineTo(ax - nx2*aW,  ay - ny2*aW);
+  ctx.closePath();
+  ctx.fill();
+
+  // Outer frame
+  ctx.lineWidth = outerLw;
+  ctx.strokeStyle = color;
+  ctx.lineCap = 'square';
+  ctx.lineJoin = 'miter';
+  ctx.beginPath();
+  ctx.moveTo(slLx,slLy); ctx.lineTo(slRx,slRy);
+  ctx.lineTo(shRx,shRy); ctx.lineTo(shLx,shLy);
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
 function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
   const baseColor = s.color || docWallColor || WALL_COLOR;
   const [sx1, sy1] = toScreen(s.x1, s.y1);
@@ -545,7 +716,13 @@ function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = `${LABEL_WEIGHT} ${fontSize}px ${LABEL_FONT}`;
-  ctx.fillText(text, cx, cy + fontSize * 0.03);
+  if (s.textRotation){
+    ctx.translate(cx, cy);
+    ctx.rotate(-s.textRotation); // negate: canvas Y is flipped vs math convention
+    ctx.fillText(text, 0, fontSize * 0.03);
+  } else {
+    ctx.fillText(text, cx, cy + fontSize * 0.03);
+  }
   ctx.restore();
 }
 

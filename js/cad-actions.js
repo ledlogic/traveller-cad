@@ -9,6 +9,17 @@ el.script.addEventListener('input', () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(runScript, 350);
 });
+
+function updateCursorLine(){
+  const pos = el.script.selectionStart;
+  const text = el.script.value.slice(0, pos);
+  cursorLineNum = text.split('\n').length;
+  renderCanvas();
+}
+
+el.script.addEventListener('click',    updateCursorLine);
+el.script.addEventListener('keyup',    updateCursorLine);
+el.script.addEventListener('selectionchange', updateCursorLine);
 el.script.addEventListener('keydown', (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter'){
     e.preventDefault();
@@ -361,7 +372,8 @@ function updateInfoBar(){
       hoverWy >= Math.min(s.y1,s.y2) && hoverWy <= Math.max(s.y1,s.y2)
     );
     if (hovered){
-      info = `${fmt(Math.abs(hovered.x2-hovered.x1))} × ${fmt(Math.abs(hovered.y2-hovered.y1))} m`;
+      const elev = hovered.elev !== undefined ? ` · elev ${hovered.elev > 0 ? '+' : ''}${hovered.elev} m` : '';
+      info = `${fmt(Math.abs(hovered.x2-hovered.x1))} × ${fmt(Math.abs(hovered.y2-hovered.y1))} m${elev}`;
     }
   }
 
@@ -495,16 +507,24 @@ el.btnPng.addEventListener('click', () => {
     .filter(s => s.type === 'image')
     .forEach(s => drawImageShape(s, toScreen));
 
+  const elevShapesEx = currentDoc.shapes.filter(s => s.elev !== undefined);
+  const elevMinEx = elevShapesEx.length ? Math.min(...elevShapesEx.map(s => s.elev)) : 0;
+  const elevMaxEx = elevShapesEx.length ? Math.max(...elevShapesEx.map(s => s.elev)) : 0;
+  const elevRangeEx = Math.max(elevMaxEx - elevMinEx, 1);
+
   currentDoc.shapes
     .filter(s => ['rect','oval','semicircle'].includes(s.type))
     .forEach(s => drawStructure(s, toScreen, exportScale, currentDoc.gridSize,
-                                currentDoc.wallWidth, currentDoc.wallColor));
+                                currentDoc.wallWidth, currentDoc.wallColor, elevMinEx, elevRangeEx));
   currentDoc.shapes
     .filter(s => s.type === 'wall')
     .forEach(s => drawWall(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor));
   currentDoc.shapes
     .filter(s => s.type === 'door')
     .forEach(s => drawDoor(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor, currentDoc.featureThickness));
+  currentDoc.shapes
+    .filter(s => s.type === 'stairs')
+    .forEach(s => drawStairs(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor));
   currentDoc.shapes
     .filter(s => s.type === 'label')
     .forEach(s => drawLabel(s, toScreen, exportScale, null, null, currentDoc.wallColor));

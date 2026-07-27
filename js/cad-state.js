@@ -10,6 +10,7 @@ let viewport = null;       // {x1,y1,x2,y2,scale,offsetX,offsetY,canvasW,canvasH
 let debounceTimer = null;
 let showAnchors = false;
 let hoverWx = null, hoverWy = null;
+let cursorLineNum = -1;   // 1-based line number of cursor in script editor
 let zoomLevel = 1.0;   // multiplier on top of the fit-to-canvas scale
 let panX = 0, panY = 0; // pan offset in screen pixels
 

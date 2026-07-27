@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v0.69
+- **Current version:** v0.82
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,19 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v0.82 | 2026-07-27 | `stairs` renderer rewritten — finds low/high edges by actual Z values on all 4 edges, correctly handles east-west/any-orientation stairs, smarter endpoint pairing avoids crossed tread lines |
+| v0.81 | 2026-07-27 | Cursor highlight tightened — only fires on shape lines or `^` modifier lines directly attached to a shape; no longer grabs nearby shapes through loose line-number tolerance |
+| v0.80 | 2026-07-27 | venue.json merged — Cocktail Alcove, West Arch, West Corridor, repositioned lounges/chats from v2 layout merged with colour treatments (red Morph/Security, grey kitchen/corridors) from v1 |
+| v0.79 | 2026-07-27 | Editor cursor highlight — amber dashed outline drawn around the shape on the cursor line; updates on click/keyup; ±3 line tolerance catches `^` modifier lines |
+| v0.78 | 2026-07-27 | `stairs: x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4 [, treadDepth]` — stair block with tread lines auto-derived from Z difference, direction arrow at low end; works at any angle |
+| v0.77 | 2026-07-27 | Auto-format extended — blank line inserted between consecutive shape commands (rect, oval, wall, etc.) so each object gets visual separation in the editor |
+| v0.76 | 2026-07-27 | `^elev: meters` — elevation tinting; higher = lighter blue-white fill, lower = darker; relative across all elevated shapes; elevation shown in hover info bar |
+| v0.75 | 2026-07-27 | Auto-format on render — exactly one blank line inserted before `# ──` section comments; consecutive blank lines collapsed to one; cursor position preserved |
+| v0.74 | 2026-07-27 | `^wallwidth: value` overrides global wall thickness for the previous shape only |
+| v0.73 | 2026-07-27 | `^rotate-text: angleDeg` — rotates the most recent label's text around its own centre without moving the box; useful for vertical corridor labels |
+| v0.72 | 2026-07-27 | venue.json updated — VR Pod Alcove resized, lounge colours added (`^#d9daea`), runway colour updated |
+| v0.71 | 2026-07-27 | `^translate: dx, dy` and `^rotate: angleDeg [, cx, cy]` replace standalone commands; `^` handler skips labels when finding previous shape |
+| v0.70 | 2026-07-27 | Removed venue title labels from venue.json |
 | v0.69 | 2026-07-27 | `⬡ Components` link in toolbar opens `component-editor.html` |
 | v0.68 | 2026-07-27 | `rotate: angleDeg [, cx, cy]` rotates previous shape bbox around its centre or given point; `translate: dx, dy` shifts previous shape; venue.json updated with `^#hex` background colours |
 | v0.67 | 2026-07-27 | `^text #hex` — optional trailing hex on `^` label lines sets text colour (e.g. `^ Main Ballroom #ffffff` for white on dark background) |
