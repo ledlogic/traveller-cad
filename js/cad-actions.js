@@ -190,17 +190,26 @@ function jumpToShapeAtScreen(clientX, clientY){
   const wx = viewport.x1 + (sx - viewport.offsetX) / viewport.scale;
   const wy = viewport.y2 - (sy - viewport.offsetY) / viewport.scale;
 
-  // Find the topmost shape that contains the click point
   const SHAPE_TYPES = ['rect','oval','semicircle','door','wall','stairs','hatch','image'];
-  const hit = [...currentDoc.shapes].reverse().find(s => {
+  const pad = Math.max(0.3, (currentDoc.wallWidth || 0.3));
+
+  // Find all shapes that contain the click, then pick the smallest area
+  // (smallest = most specific — a 2m corridor beats an 80m ballroom)
+  const candidates = currentDoc.shapes.filter(s => {
     if (!SHAPE_TYPES.includes(s.type) || s.lineNum === undefined) return false;
     const x1 = Math.min(s.x1, s.x2), x2 = Math.max(s.x1, s.x2);
     const y1 = Math.min(s.y1, s.y2), y2 = Math.max(s.y1, s.y2);
-    const pad = Math.max(0.3, (s.wallWidth || currentDoc.wallWidth || 0.3));
     return wx >= x1 - pad && wx <= x2 + pad && wy >= y1 - pad && wy <= y2 + pad;
   });
 
-  if (!hit) return false;
+  if (!candidates.length) return false;
+
+  // Pick the smallest by area
+  const hit = candidates.reduce((best, s) => {
+    const area = Math.abs(s.x2 - s.x1) * Math.abs(s.y2 - s.y1);
+    const bestArea = Math.abs(best.x2 - best.x1) * Math.abs(best.y2 - best.y1);
+    return area < bestArea ? s : best;
+  });
 
   // Scroll textarea to that line and place caret there
   const lines = el.script.value.split('\n');
@@ -210,7 +219,6 @@ function jumpToShapeAtScreen(clientX, clientY){
   }
   el.script.focus();
   el.script.setSelectionRange(charPos, charPos + (lines[hit.lineNum - 1] || '').length);
-  // Scroll the line into view in the textarea
   const lineHeight = el.script.scrollHeight / lines.length;
   el.script.scrollTop = Math.max(0, (hit.lineNum - 4) * lineHeight);
   cursorLineNum = hit.lineNum;
@@ -518,11 +526,19 @@ el.btnPng.addEventListener('click', () => {
 
   const { x1, y1, x2, y2 } = currentDoc.world;
   const worldW = x2 - x1, worldH = y2 - y1;
-  const TARGET_PX = 1800;
-  const exportScale = Math.min(TARGET_PX / worldW, TARGET_PX / worldH);
+
+  // Resolution: px per world unit (metre). Selector in toolbar sets this.
+  const pxPerM = parseInt(el.exportRes ? el.exportRes.value : '15') || 15;
+  const exportScale = pxPerM;
+
   const pad = { top:40, right:24, bottom:24, left:48 };
   const canvasW = Math.round(worldW * exportScale + pad.left + pad.right);
   const canvasH = Math.round(worldH * exportScale + pad.top  + pad.bottom);
+
+  // Warn if very large
+  if (canvasW * canvasH > 200_000_000){
+    if (!confirm(`This will generate a ${canvasW}×${canvasH}px image (~${Math.round(canvasW*canvasH/1e6)}MP). Continue?`)) return;
+  }
 
   const offscreen = document.createElement('canvas');
   offscreen.width  = canvasW;

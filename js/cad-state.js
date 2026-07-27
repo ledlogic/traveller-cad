@@ -35,6 +35,7 @@ const el = {
   btnLoad: document.getElementById('btnLoad'),
   btnSave: document.getElementById('btnSave'),
   btnPng: document.getElementById('btnPng'),
+  exportRes: document.getElementById('exportRes'),
   btnDebug: document.getElementById('btnDebug'),
   btnZoomIn: document.getElementById('btnZoomIn'),
   btnZoomOut: document.getElementById('btnZoomOut'),

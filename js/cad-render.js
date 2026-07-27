@@ -478,10 +478,30 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
       ctx.stroke();
     }
   } else if (!s.nowall){
-    shapePath(s, toScreen, scale);
     ctx.lineWidth = Math.max(0.5, lw * scale);
     ctx.strokeStyle = color;
-    ctx.stroke();
+    ctx.lineCap = 'square';
+
+    // Check if any side is suppressed — if so draw sides individually
+    if (s.type === 'rect' && (s.noleft || s.noright || s.notop || s.nobottom)){
+      const [sx1, sy1] = toScreen(s.x1, s.y1);
+      const [sx2, sy2] = toScreen(s.x2, s.y2);
+      const left2  = Math.min(sx1, sx2), right2 = Math.max(sx1, sx2);
+      const top2   = Math.min(sy1, sy2), bot2   = Math.max(sy1, sy2);
+      // Determine which screen edge maps to which logical side
+      // x1<x2 → left=x1, right=x2; y1>y2 (world Y flipped) → top=y1, bottom=y2
+      const leftSup   = s.x1 < s.x2 ? s.noleft   : s.noright;
+      const rightSup  = s.x1 < s.x2 ? s.noright  : s.noleft;
+      const topSup    = s.y1 > s.y2 ? s.notop    : s.nobottom;
+      const bottomSup = s.y1 > s.y2 ? s.nobottom : s.notop;
+      if (!leftSup)   { ctx.beginPath(); ctx.moveTo(left2,  top2); ctx.lineTo(left2,  bot2);  ctx.stroke(); }
+      if (!rightSup)  { ctx.beginPath(); ctx.moveTo(right2, top2); ctx.lineTo(right2, bot2);  ctx.stroke(); }
+      if (!topSup)    { ctx.beginPath(); ctx.moveTo(left2,  top2); ctx.lineTo(right2, top2);  ctx.stroke(); }
+      if (!bottomSup) { ctx.beginPath(); ctx.moveTo(left2,  bot2); ctx.lineTo(right2, bot2);  ctx.stroke(); }
+    } else {
+      shapePath(s, toScreen, scale);
+      ctx.stroke();
+    }
   }
   ctx.restore();
 }

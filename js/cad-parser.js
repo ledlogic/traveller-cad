@@ -268,11 +268,14 @@ function parseScript(text){
         const xSpan = Math.abs(prev.x2 - prev.x1);
         const ySpan = Math.abs(prev.y2 - prev.y1);
         const hw = Math.max(xSpan, ySpan) / 2;
-        // Place below centre, smaller box (0.6 scale)
+        // Inherit textRotation from the most recent primary label on this shape
+        const prevLabel = [...doc.shapes].reverse().find(s => s.type === 'label' && !s.secondary);
+        const textRotation = prevLabel ? prevLabel.textRotation : undefined;
+        // Offset below centre — if rotated, offset along the rotation axis
         doc.shapes.push({
           type:'label',
           x1: cx - hw, y1: cy - 2.5, x2: cx + hw, y2: cy - 0.5,
-          text, lineNum, secondary: true
+          text, lineNum, secondary: true, textRotation
         });
         return;
       }
@@ -341,10 +344,15 @@ function parseScript(text){
         }
         case 'rect': {
           const n = parseNumbers(rest, 4);
-          const nowall = /\bnowall\b/i.test(rest);
+          const nowall   = /\bnowall\b/i.test(rest);
+          const noleft   = /\bnoleft\b/i.test(rest);
+          const noright  = /\bnoright\b/i.test(rest);
+          const notop    = /\bnotop\b/i.test(rest);
+          const nobottom = /\bnobottom\b/i.test(rest);
           const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
           const color = cm ? parseHex(cm[1]) : null;
-          doc.shapes.push({ type:'rect', x1:n[0], y1:n[1], x2:n[2], y2:n[3], nowall, color, lineNum });
+          doc.shapes.push({ type:'rect', x1:n[0], y1:n[1], x2:n[2], y2:n[3],
+            nowall, noleft, noright, notop, nobottom, color, lineNum });
           break;
         }
         case 'oval': {

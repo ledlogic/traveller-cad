@@ -22,6 +22,14 @@
       <button class="btn" id="btnLoad">Load</button>
       <button class="btn" id="btnSave">Save JSON</button>
       <button class="btn" id="btnPng">Export PNG</button>
+      <select id="exportRes" title="Export resolution (px per metre)" style="appearance:none;background:var(--bg-panel);border:1px solid var(--hairline-bright);color:var(--text-muted);font-family:var(--mono);font-size:10px;padding:6px 8px;border-radius:3px;cursor:pointer;">
+        <option value="10">10px/m (low)</option>
+        <option value="15" selected>15px/m (med)</option>
+        <option value="30">30px/m (high)</option>
+        <option value="50">50px/m (print)</option>
+        <option value="100">100px/m (hi-res)</option>
+        <option value="150">150px/m (150dpi)</option>
+      </select>
       <button class="btn" id="btnDebug" title="Show bounding corners and centers">⊕ Anchors</button>
       <a href="component-editor.html" class="btn" target="_blank" title="Open Component Designer">⬡ Components</a>
       <span style="width:1px;background:var(--hairline);align-self:stretch;margin:4px 2px;display:inline-block;"></span>

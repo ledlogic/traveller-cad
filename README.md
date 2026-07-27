@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.09
+- **Current version:** v1.17
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,14 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.17 | 2026-07-27 | venue.json updated from upload; east security corridor confirmed present; duplicate door removed |
+| v1.16 | 2026-07-27 | world updated to -60,-40,60,45; removed duplicate door in security corridor; fixed corridor 3 and lift corridor labels |
+| v1.15 | 2026-07-27 | Export PNG resolution selector — dropdown next to Export PNG button: 10/15/30/50/100/150 px/m; large export confirmation dialog |
+| v1.14 | 2026-07-27 | venue.json updated — security corridors, east staff corridor, guest corridor, additional locked doors |
+| v1.13 | 2026-07-27 | `noleft` `noright` `notop` `nobottom` flags on `rect:` suppress individual sides |
+| v1.12 | 2026-07-27 | `^text2:` inherits `textRotation` from the preceding `^text:` label so both lines rotate together |
+| v1.11 | 2026-07-27 | Anchor-mode click-to-select now picks smallest enclosing shape by area — thin corridors beat large ballroom |
+| v1.10 | 2026-07-27 | venue.json — security corridor added: north corridor (runway→east wall) + east corridor (east wall→VR alcove) with locked doors into runway, ballroom, and VR alcove |
 | v1.09 | 2026-07-27 | venue.json colour scheme changed to naval blue/aqua — wallcolor #1e4a6e, fills from #4a8fa8 (primary) through #6db4c8 (secondary) #a8d8e8 (tertiary) to #d4eef5 (lightest) |
 | v1.08 | 2026-07-27 | venue.json updated — arches, pods, lifts, observation terraces, staff corridors, security hub; fixed `^rotatetext` typo |
 | v1.07 | 2026-07-27 | Click on shape in Anchor mode jumps editor caret to that shape's line and scrolls it into view |
