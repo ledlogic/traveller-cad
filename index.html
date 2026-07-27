@@ -67,11 +67,16 @@
           <span class="ex"><code>wall: x1, y1, x2, y2 [, width]</code><br>Draws a thick structural line. Optional 5th value overrides thickness.</span>
           <span class="ex"><code>stairs: x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4 [, treadDepth]</code><br>Draws a stair block — white fill, tread lines running perpendicular to the direction of travel (low Z → high Z), and a direction arrow at the bottom. Default tread depth 0.3 m.</span>
           <span class="ex"><code>label: x1, y1, x2, y2, text</code><br>Centers TEXT (auto-uppercased) inside the box. <b>Box height controls font size</b> — use the same height on all labels for consistent sizing. <code>text:</code> works too.</span>
-          <span class="ex"><code>^elev: meters</code><br>Sets elevation on the previous shape. Higher elevation = lighter fill; lower = darker. Relative to all other elevated shapes in the drawing. Shows in the info bar on hover.</span>
-          <span class="ex"><code>^rotate-text: angleDeg</code><br>Rotates the most recent label's text around its own centre. e.g. <code>^rotate-text: 90</code> for vertical text in a corridor.</span>
-          <span class="ex"><code>^rotate: angleDeg [, cx, cy]</code><br>Rotates the previous shape around its own centre (default) or a given world point. e.g. <code>^rotate: 45</code> or <code>^rotate: 30, 0, 0</code>.</span>
-          <span class="ex"><code>^#rrggbb</code><br>Sets a background fill colour on the previous shape (e.g. <code>^#2a3a2a</code>). Drawn under the grid.</span>
-          <span class="ex"><code>^img: url</code><br>Sets a background image on the previous shape from a URL or relative path. Drawn under the grid, scaled to fit.</span>
+          <span class="ex"><code>^text: text</code><br>Auto-label centred on previous shape.</span>
+          <span class="ex"><code>^textcolor: #hex</code><br>Sets the colour of the most recent label.</span>
+          <span class="ex"><code>^bg: #rrggbb</code><br>Sets a background fill colour on the previous shape. Drawn under the grid.</span>
+          <span class="ex"><code>^img: url</code><br>Sets a background image on the previous shape. Drawn under the grid, scaled to fit.</span>
+          <span class="ex"><code>^opacity: 0..1</code><br>Sets fill transparency (0 = clear, 1 = solid). Outline stays fully opaque.</span>
+          <span class="ex"><code>^elev: meters</code><br>Sets elevation. Higher = lighter fill. Relative to all elevated shapes in the drawing.</span>
+          <span class="ex"><code>^wallwidth: value</code><br>Overrides global wall thickness for the previous shape only.</span>
+          <span class="ex"><code>^translate: dx, dy</code><br>Shifts the previous shape by (dx, dy) world units.</span>
+          <span class="ex"><code>^rotate: angleDeg [, cx, cy]</code><br>Rotates the previous shape around its centre or a given world point.</span>
+          <span class="ex"><code>^rotate-text: angleDeg</code><br>Rotates the most recent label's text around its own centre. e.g. <code>^rotate-text: 90</code> for vertical text.</span>
           <span class="ex"><code>image: x1, y1, x2, y2, url</code><br>Loads an image from a URL or relative filename and draws it scaled to the given rect. Shows a placeholder while loading. <code>img:</code> works too.</span>
           <span class="ex"><code>place: componentName, x, y [, scale [, angle]]</code><br>Places a component at world position (x,y). Optional scale (default 1) and rotation angle in degrees CCW from +X axis (default 0, facing up = 90°). Built-in: <code>chair_rect</code>, <code>bed</code>.</span>
           <span class="ex"><code>@component myName … @end</code><br>Defines a reusable component in local coords (origin at centre). Supports <code>rect</code>, <code>oval</code>, <code>wall</code>, <code>line</code>, <code>label</code> inside. <code>line:</code> is a detail line using <code>componentthickness</code> with round caps — use it for furniture marks rather than structural walls.</span>

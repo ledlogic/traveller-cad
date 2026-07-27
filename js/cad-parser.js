@@ -108,9 +108,27 @@ function parseScript(text){
         ['rect','oval','semicircle','wall','door','image'].includes(s.type));
       if (!prev){ errors.push({lineNum, msg:'^ has no preceding shape'}); return; }
 
-      // ^#hex — background colour
+      // ^bg: #hex — background colour
+      if (rest.toLowerCase().startsWith('bg:')){
+        try { prev.bgColor = parseHex(rest.slice(3).trim().replace(/^#/,'')); }
+        catch(e) { errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
+      // legacy ^#hex — still accepted for backwards compat
       if (/^#[0-9a-fA-F]{3,6}$/.test(rest)){
         try { prev.bgColor = parseHex(rest.slice(1)); } catch(e) { errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
+      // ^textcolor: #hex — sets text colour on the most recent label
+      if (rest.toLowerCase().startsWith('textcolor:')){
+        try {
+          const color = parseHex(rest.slice(10).trim().replace(/^#/,''));
+          const prevLabel = [...doc.shapes].reverse().find(s => s.type === 'label');
+          if (!prevLabel) throw new Error('no preceding label');
+          prevLabel.color = color;
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
         return;
       }
 
@@ -126,6 +144,16 @@ function parseScript(text){
           const n = parseNumbers(rest.slice(10).trim(), 2);
           prev.x1 += n[0]; prev.x2 += n[0];
           prev.y1 += n[1]; prev.y2 += n[1];
+        } catch(e){ errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
+      // ^opacity: 0..1 — fill opacity for the previous shape (0=transparent, 1=opaque)
+      if (rest.toLowerCase().startsWith('opacity:')){
+        try {
+          const v = parseFloat(rest.slice(8).trim());
+          if (Number.isNaN(v)) throw new Error('opacity must be a number 0..1');
+          prev.opacity = Math.max(0, Math.min(1, v));
         } catch(e){ errors.push({lineNum, msg: e.message}); }
         return;
       }
@@ -182,19 +210,22 @@ function parseScript(text){
         return;
       }
 
-      // ^text [#hex] — auto-label centred on previous shape, optional text colour
-      const colorMatch = rest.match(/\s+(#[0-9a-fA-F]{3,6})$/);
-      const text = colorMatch ? rest.slice(0, -colorMatch[0].length).trim() : rest;
-      let textColor = null;
-      if (colorMatch){ try { textColor = parseHex(colorMatch[1].slice(1)); } catch(e){} }
-      const cx = (prev.x1 + prev.x2) / 2;
-      const cy = (prev.y1 + prev.y2) / 2;
-      const hw = Math.abs(prev.x2 - prev.x1) / 2;
-      doc.shapes.push({
-        type:'label',
-        x1: cx - hw, y1: cy - 1, x2: cx + hw, y2: cy + 1,
-        text, color: textColor, lineNum
-      });
+      // ^text: text — auto-label centred on previous shape
+      if (rest.toLowerCase().startsWith('text:')){
+        const text = rest.slice(5).trim();
+        const cx = (prev.x1 + prev.x2) / 2;
+        const cy = (prev.y1 + prev.y2) / 2;
+        const hw = Math.abs(prev.x2 - prev.x1) / 2;
+        doc.shapes.push({
+          type:'label',
+          x1: cx - hw, y1: cy - 1, x2: cx + hw, y2: cy + 1,
+          text, lineNum
+        });
+        return;
+      }
+
+      // Unknown ^ command
+      errors.push({lineNum, msg:`unknown ^ command "${rest.split(':')[0]}"`});
       return;
     }
 

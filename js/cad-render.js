@@ -403,6 +403,7 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
     fillColor = `rgb(${light},${light + Math.round(t*8)},${light + Math.round(t*16)})`;
   }
   ctx.save();
+  if (s.opacity !== undefined) ctx.globalAlpha = s.opacity;
   shapePath(s, toScreen, scale);
   ctx.fillStyle = fillColor;
   ctx.fill();
@@ -428,6 +429,7 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
   ctx.clip();
   drawGrid(s, toScreen, gridSize);
   ctx.restore();
+  ctx.globalAlpha = 1; // restore before drawing outline
 
   if (s.type === 'semicircle' && !s.nowall){
     const [sx1, sy1] = toScreen(s.x1, s.y1);
@@ -614,13 +616,23 @@ function drawStairs(s, toScreen, scale, wallWidth, docWallColor){
     [shLx,shLy] = [hbX,hbY]; [shRx,shRy] = [haX,haY];
   }
 
-  // White fill
+  // Gradient fill — from a tinted colour at the low end to near-white at the high end
+  const midLowX = (slLx + slRx) / 2, midLowY = (slLy + slRy) / 2;
+  const midHiX  = (shLx + shRx) / 2, midHiY  = (shLy + shRy) / 2;
+  const grad = ctx.createLinearGradient(midLowX, midLowY, midHiX, midHiY);
+  // Low end: a soft tint of the wall colour
+  grad.addColorStop(0, 'rgba(168,200,220,0.55)');
+  // High end: near white
+  grad.addColorStop(1, 'rgba(255,255,255,0.92)');
+
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(slLx,slLy); ctx.lineTo(slRx,slRy);
   ctx.lineTo(shRx,shRy); ctx.lineTo(shLx,shLy);
   ctx.closePath();
   ctx.fillStyle = PAPER_COLOR;
+  ctx.fill();
+  ctx.fillStyle = grad;
   ctx.fill();
 
   // Tread lines — evenly spaced parallel lines from low to high
@@ -647,8 +659,6 @@ function drawStairs(s, toScreen, scale, wallWidth, docWallColor){
   }
 
   // Direction arrow — small triangle at the low end, pointing toward high end
-  const midLowX = (slLx + slRx) / 2, midLowY = (slLy + slRy) / 2;
-  const midHiX  = (shLx + shRx) / 2, midHiY  = (shLy + shRy) / 2;
   const dx = midHiX - midLowX, dy = midHiY - midLowY;
   const dlen = Math.hypot(dx, dy) || 1;
   const ux = dx/dlen, uy = dy/dlen;
