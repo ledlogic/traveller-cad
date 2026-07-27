@@ -579,7 +579,7 @@ function drawStairs(s, toScreen, scale, wallWidth, docWallColor){
   if (!s.corners || s.corners.length < 4) return;
   const color = s.color || docWallColor || WALL_COLOR;
   const outerLw = Math.max(1.5, (s.wallWidth || wallWidth) * scale);
-  const treadLw = Math.max(0.8, outerLw * 0.4);
+  const treadLw = Math.max(0.5, Math.min(1.2, scale * 0.015)); // very thin, scale-relative
 
   const c = s.corners; // [0..3] in order given
 
@@ -635,12 +635,12 @@ function drawStairs(s, toScreen, scale, wallWidth, docWallColor){
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // Tread lines — evenly spaced parallel lines from low to high
+  // Tread count based on standard riser height (0.19m max per building code)
+  const RISER_HEIGHT = 0.19;
   const zLow  = lowEdge.avgZ;
   const zHigh = highEdge.avgZ;
   const zDiff = Math.max(Math.abs(zHigh - zLow), 0.01);
-  const treadDepth = s.treadDepth || 0.3;
-  const nTreads = Math.max(2, Math.round(zDiff / treadDepth));
+  const nTreads = Math.max(2, Math.ceil(zDiff / RISER_HEIGHT));
 
   ctx.strokeStyle = color;
   ctx.lineWidth = treadLw;
