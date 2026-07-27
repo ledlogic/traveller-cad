@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starship CAD — Component Editor</title>
+<link href="https://fonts.cdnfonts.com/css/univers" rel="stylesheet">
+<link rel="stylesheet" href="css/cad.css">
+<style>
+  /* ── Component Editor overrides ── */
+  .app { flex-direction: row; }
+
+  /* Left: shape list panel */
+  .shape-panel {
+    width: 320px;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--hairline);
+    background: var(--bg-panel);
+    flex-shrink: 0;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .comp-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .comp-name-wrap label { font-size: 10px; color: var(--text-faint); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+  #compName {
+    flex: 1;
+    background: var(--bg-console);
+    border: 1px solid var(--hairline-bright);
+    color: var(--text-primary);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 3px;
+    outline: none;
+  }
+  #compName:focus { border-color: var(--ink-teal); }
+
+  .shape-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .shape-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background .1s, border-color .1s;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .shape-item:hover { background: rgba(73,165,134,0.06); }
+  .shape-item.selected { background: rgba(73,165,134,0.12); border-left-color: var(--ink-teal); color: var(--text-primary); }
+  .shape-badge {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: var(--hairline-bright);
+    color: var(--text-faint);
+    flex-shrink: 0;
+    min-width: 32px;
+    text-align: center;
+  }
+  .shape-item.selected .shape-badge { background: var(--ink-teal-dim); color: var(--ink-teal-bright); }
+  .shape-coords { font-family: var(--mono); font-size: 10px; color: var(--text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .add-bar {
+    padding: 10px 14px;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .add-bar .btn { font-size: 10px; padding: 6px 10px; }
+
+  /* Centre: coordinate editor */
+  .coord-panel {
+    width: 240px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--hairline);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-panel);
+  }
+  .coord-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .coord-fields {
+    flex: 1;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+  }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-group label { font-size: 10px; color: var(--text-faint); letter-spacing: 0.1em; text-transform: uppercase; }
+  .field-row { display: flex; gap: 6px; }
+  .field-row input {
+    flex: 1;
+    background: var(--bg-console);
+    border: 1px solid var(--hairline-bright);
+    color: var(--text-primary);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 8px;
+    border-radius: 3px;
+    outline: none;
+    min-width: 0;
+  }
+  .field-row input:focus { border-color: var(--ink-teal); }
+  .field-row .field-label { font-size: 10px; color: var(--text-faint); padding: 8px 2px; align-self: center; min-width: 14px; }
+  .coord-actions { padding: 10px 14px; border-top: 1px solid var(--hairline); display: flex; flex-direction: column; gap: 6px; }
+  .check-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); cursor: pointer; }
+  .check-row input[type=checkbox] { accent-color: var(--ink-teal); width: 14px; height: 14px; }
+  #btnDeleteShape { border-color: var(--error); color: var(--error); }
+  #btnDeleteShape:hover { background: rgba(217,119,106,0.1); }
+  .empty-state { padding: 24px 14px; font-size: 11px; color: var(--text-faint); line-height: 1.6; }
+
+  /* Right: canvas preview */
+  .preview-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--bg-canvas-wrap);
+  }
+  .preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .preview-header .btn { font-size: 10px; padding: 6px 12px; }
+  .canvas-frame {
+    flex: 1;
+    margin: 18px;
+    position: relative;
+    border: 1px solid var(--hairline-bright);
+  }
+  .canvas-frame:before { content:''; position:absolute; top:-1px; left:-1px; width:14px; height:14px; border-top:2px solid var(--ink-teal); border-left:2px solid var(--ink-teal); }
+  .canvas-frame:after  { content:''; position:absolute; top:-1px; right:-1px; width:14px; height:14px; border-top:2px solid var(--ink-teal); border-right:2px solid var(--ink-teal); }
+  .tick-bl { position:absolute; bottom:-1px; left:-1px; width:14px; height:14px; border-bottom:2px solid var(--ink-teal); border-left:2px solid var(--ink-teal); }
+  .tick-br { position:absolute; bottom:-1px; right:-1px; width:14px; height:14px; border-bottom:2px solid var(--ink-teal); border-right:2px solid var(--ink-teal); }
+  #previewCanvas { position:absolute; inset:0; width:100%; height:100%; cursor:crosshair; }
+
+  /* Output panel */
+  .output-panel {
+    flex-shrink: 0;
+    border-top: 1px solid var(--hairline);
+    background: var(--bg-console);
+  }
+  .output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  #outputText {
+    width: 100%;
+    height: 110px;
+    resize: none;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink-teal-bright);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 10px 14px;
+    line-height: 1.6;
+    box-sizing: border-box;
+  }
+
+  /* HUD crosshair coords */
+  .coord-hud {
+    position: absolute;
+    right: 10px;
+    bottom: 8px;
+    font-size: 10px;
+    color: var(--text-faint);
+    background: rgba(13,18,21,0.72);
+    padding: 3px 8px;
+    border-radius: 3px;
+    pointer-events: none;
+  }
+  .coord-hud b { color: var(--ink-teal-bright); }
+
+  /* Crosshair lines on canvas */
+  .ch-h, .ch-v {
+    position: absolute;
+    background: var(--ink-teal);
+    opacity: 0.2;
+    pointer-events: none;
+  }
+  .ch-h { height: 1px; left: 0; right: 0; top: 50%; }
+  .ch-v { width: 1px; top: 0; bottom: 0; left: 50%; }
+</style>
+</head>
+<body>
+<div class="app" style="flex-direction:column;">
+
+  <!-- Header -->
+  <header class="headerbar">
+    <div class="brand">⌗ <b>STARSHIP&nbsp;CAD</b> <span style="color:var(--text-faint);margin-left:8px;font-size:10px;letter-spacing:.1em">COMPONENT EDITOR</span></div>
+    <div class="doc-title-wrap">
+      <div class="doc-title" style="font-size:16px;" id="headerTitle">New Component</div>
+      <div class="doc-meta">edit shapes in local coordinates · origin at centre · head faces +Y at θ=0</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="btnCopyOutput" title="Copy @component block to clipboard">Copy to Clipboard</button>
+      <a href="index.html" class="btn">← Back to CAD</a>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="body" style="flex:1;min-height:0;">
+
+    <!-- Shape list -->
+    <section class="shape-panel">
+      <div class="panel-header">
+        <span>Shapes</span>
+        <span id="shapeCount" style="color:var(--text-faint)">0</span>
+      </div>
+      <div class="comp-name-wrap">
+        <label>Name</label>
+        <input type="text" id="compName" value="my_component" placeholder="component name">
+      </div>
+      <div class="shape-list" id="shapeList"></div>
+      <div class="add-bar">
+        <button class="btn" data-add="rect">+ Rect</button>
+        <button class="btn" data-add="oval">+ Oval</button>
+        <button class="btn" data-add="line">+ Line</button>
+        <button class="btn" data-add="wall">+ Wall</button>
+      </div>
+    </section>
+
+    <!-- Coordinate editor -->
+    <section class="coord-panel">
+      <div class="coord-header">Coordinates</div>
+      <div class="coord-fields" id="coordFields">
+        <div class="empty-state">Select a shape to edit its coordinates, or add a new shape using the buttons below the list.</div>
+      </div>
+      <div class="coord-actions" id="coordActions" style="display:none;">
+        <label class="check-row"><input type="checkbox" id="chkNowall"> <span>nowall (suppress outline)</span></label>
+        <button class="btn" id="btnDeleteShape">Delete Shape</button>
+      </div>
+    </section>
+
+    <!-- Preview canvas + output -->
+    <section class="preview-panel">
+      <div class="preview-header">
+        <span>Preview — local coordinates (m)</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="zoomLabel" style="font-size:10px;color:var(--text-faint)"></span>
+          <button class="btn" id="btnFit">Fit</button>
+        </div>
+      </div>
+      <div class="canvas-frame" id="canvasFrame">
+        <div class="ch-h"></div><div class="ch-v"></div>
+        <canvas id="previewCanvas"></canvas>
+        <span class="tick-bl"></span><span class="tick-br"></span>
+        <div class="coord-hud" id="coordHud">x — · y —</div>
+      </div>
+      <div class="output-panel">
+        <div class="output-header">
+          <span>@component output</span>
+          <button class="btn" id="btnCopyOutput2" style="font-size:9px;padding:4px 8px;">Copy</button>
+        </div>
+        <textarea id="outputText" readonly></textarea>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function(){
+
+const WALL_COLOR   = '#1e4a3d';
+const PAPER_COLOR  = '#ffffff';
+const GRID_COLOR   = '#cfd6d2';
+const COMP_LW      = 0.03;   // component line width in local units
+const GRID_STEP    = 0.5;    // local grid spacing
+
+// ── State ──────────────────────────────────────────────────────────
+let shapes = [];         // array of shape objects
+let selectedIdx = -1;    // currently selected shape index
+let zoom = 80;           // px per world unit
+let panX = 0, panY = 0; // canvas offset in px from centre
+
+// ── DOM ────────────────────────────────────────────────────────────
+const el = {
+  compName:     document.getElementById('compName'),
+  headerTitle:  document.getElementById('headerTitle'),
+  shapeList:    document.getElementById('shapeList'),
+  shapeCount:   document.getElementById('shapeCount'),
+  coordFields:  document.getElementById('coordFields'),
+  coordActions: document.getElementById('coordActions'),
+  chkNowall:    document.getElementById('chkNowall'),
+  btnDelete:    document.getElementById('btnDeleteShape'),
+  canvas:       document.getElementById('previewCanvas'),
+  canvasFrame:  document.getElementById('canvasFrame'),
+  coordHud:     document.getElementById('coordHud'),
+  zoomLabel:    document.getElementById('zoomLabel'),
+  btnFit:       document.getElementById('btnFit'),
+  outputText:   document.getElementById('outputText'),
+};
+const ctx = el.canvas.getContext('2d');
+
+// ── Coordinate helpers ────────────────────────────────────────────
+function toScreen(lx, ly){
+  const cw = el.canvas.clientWidth, ch = el.canvas.clientHeight;
+  return [ cw/2 + panX + lx * zoom, ch/2 + panY - ly * zoom ];
+}
+function toLocal(sx, sy){
+  const cw = el.canvas.clientWidth, ch = el.canvas.clientHeight;
+  return [ (sx - cw/2 - panX) / zoom, -(sy - ch/2 - panY) / zoom ];
+}
+function r2(n){ return Math.round(n * 100) / 100; }
+
+// ── Render ─────────────────────────────────────────────────────────
+function fitCanvas(){
+  const dpr = window.devicePixelRatio || 1;
+  const frame = el.canvasFrame;
+  const w = frame.clientWidth, h = frame.clientHeight;
+  el.canvas.width  = Math.max(1, Math.floor(w * dpr));
+  el.canvas.height = Math.max(1, Math.floor(h * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function render(){
+  fitCanvas();
+  const cw = el.canvas.clientWidth, ch = el.canvas.clientHeight;
+  ctx.clearRect(0, 0, cw, ch);
+
+  // background
+  ctx.fillStyle = '#1a2226';
+  ctx.fillRect(0, 0, cw, ch);
+
+  // grid
+  drawGrid(cw, ch);
+
+  // origin crosshair
+  const [ox, oy] = toScreen(0, 0);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(73,165,134,0.5)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, ch); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(cw, oy); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // shapes
+  shapes.forEach((s, i) => drawShape(s, i === selectedIdx));
+
+  // zoom label
+  el.zoomLabel.textContent = `${zoom}px/m`;
+}
+
+function drawGrid(cw, ch){
+  ctx.save();
+  ctx.strokeStyle = 'rgba(73,165,134,0.12)';
+  ctx.lineWidth = 1;
+  const step = GRID_STEP * zoom;
+  const [ox, oy] = toScreen(0, 0);
+  for (let x = ox % step; x < cw; x += step){
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ch); ctx.stroke();
+  }
+  for (let y = oy % step; y < ch; y += step){
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke();
+  }
+  // ruler labels on axes
+  ctx.fillStyle = 'rgba(73,165,134,0.5)';
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'center';
+  for (let v = -10; v <= 10; v += GRID_STEP){
+    if (Math.abs(v) < 0.001) continue;
+    const [sx] = toScreen(v, 0);
+    if (sx > 10 && sx < cw - 10) ctx.fillText(r2(v), sx, oy + 14);
+    const [, sy] = toScreen(0, v);
+    if (sy > 10 && sy < ch - 10){
+      ctx.textAlign = 'right';
+      ctx.fillText(r2(v), ox - 6, sy + 3);
+      ctx.textAlign = 'center';
+    }
+  }
+  ctx.restore();
+}
+
+function drawShape(s, isSelected){
+  ctx.save();
+  const color = isSelected ? '#5fc9a6' : WALL_COLOR;
+  const lw = Math.max(1, COMP_LW * zoom);
+
+  if (s.type === 'rect'){
+    const [sx1, sy1] = toScreen(s.x1, s.y1);
+    const [sx2, sy2] = toScreen(s.x2, s.y2);
+    const x = Math.min(sx1,sx2), y = Math.min(sy1,sy2);
+    const w = Math.abs(sx2-sx1), h = Math.abs(sy2-sy1);
+    ctx.fillStyle = PAPER_COLOR; ctx.fillRect(x, y, w, h);
+    if (!s.nowall){
+      ctx.strokeStyle = color; ctx.lineWidth = lw;
+      ctx.strokeRect(x, y, w, h);
+    }
+    if (isSelected){
+      ctx.strokeStyle = '#5fc9a6'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([4,3]); ctx.strokeRect(x-3, y-3, w+6, h+6);
+      ctx.setLineDash([]);
+    }
+  } else if (s.type === 'oval'){
+    const cx = (s.x1+s.x2)/2, cy = (s.y1+s.y2)/2;
+    const [scx, scy] = toScreen(cx, cy);
+    const rx = Math.abs(s.x2-s.x1)/2*zoom, ry = Math.abs(s.y2-s.y1)/2*zoom;
+    ctx.beginPath(); ctx.ellipse(scx, scy, rx, ry, 0, 0, Math.PI*2);
+    ctx.fillStyle = PAPER_COLOR; ctx.fill();
+    if (!s.nowall){ ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke(); }
+    if (isSelected){
+      ctx.strokeStyle = '#5fc9a6'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  } else if (s.type === 'line' || s.type === 'wall'){
+    const [sx1,sy1] = toScreen(s.x1, s.y1);
+    const [sx2,sy2] = toScreen(s.x2, s.y2);
+    ctx.strokeStyle = isSelected ? '#5fc9a6' : color;
+    ctx.lineWidth = s.type === 'wall' ? Math.max(2, lw*2) : lw;
+    ctx.lineCap = s.type === 'wall' ? 'square' : 'round';
+    ctx.beginPath(); ctx.moveTo(sx1,sy1); ctx.lineTo(sx2,sy2); ctx.stroke();
+  }
+
+  // anchor dots on selected shape
+  if (isSelected){
+    const pts = s.type === 'line' || s.type === 'wall'
+      ? [[s.x1,s.y1],[s.x2,s.y2],[(s.x1+s.x2)/2,(s.y1+s.y2)/2]]
+      : [[s.x1,s.y1],[s.x2,s.y1],[s.x1,s.y2],[s.x2,s.y2],[(s.x1+s.x2)/2,(s.y1+s.y2)/2]];
+    ctx.fillStyle = '#5fc9a6';
+    for (const [lx,ly] of pts){
+      const [sx,sy] = toScreen(lx, ly);
+      ctx.beginPath(); ctx.arc(sx,sy,3,0,Math.PI*2); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// ── Shape list ─────────────────────────────────────────────────────
+function buildShapeList(){
+  el.shapeList.innerHTML = '';
+  el.shapeCount.textContent = shapes.length;
+  shapes.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'shape-item' + (i === selectedIdx ? ' selected' : '');
+    div.innerHTML = `
+      <span class="shape-badge">${s.type}</span>
+      <span class="shape-coords">${fmtCoords(s)}</span>`;
+    div.addEventListener('click', () => selectShape(i));
+    el.shapeList.appendChild(div);
+  });
+  updateOutput();
+}
+
+function fmtCoords(s){
+  if (s.type === 'rect' || s.type === 'oval')
+    return `(${r2(s.x1)}, ${r2(s.y1)}) → (${r2(s.x2)}, ${r2(s.y2)})`;
+  return `(${r2(s.x1)}, ${r2(s.y1)}) — (${r2(s.x2)}, ${r2(s.y2)})`;
+}
+
+// ── Selection + coord editor ───────────────────────────────────────
+function selectShape(i){
+  selectedIdx = i;
+  buildShapeList();
+  buildCoordEditor();
+  render();
+}
+
+function buildCoordEditor(){
+  const s = shapes[selectedIdx];
+  if (!s){ el.coordFields.innerHTML = '<div class="empty-state">Select a shape to edit its coordinates.</div>'; el.coordActions.style.display='none'; return; }
+  el.coordActions.style.display = '';
+
+  const hasNowall = s.type === 'rect' || s.type === 'oval';
+  el.chkNowall.disabled = !hasNowall;
+  el.chkNowall.checked = !!s.nowall;
+  el.coordFields.style.display = '';
+
+  if (s.type === 'rect' || s.type === 'oval'){
+    el.coordFields.innerHTML = `
+      <div class="field-group">
+        <label>Corner 1</label>
+        <div class="field-row">
+          <span class="field-label">x1</span><input type="number" step="0.05" id="fx1" value="${s.x1}">
+          <span class="field-label">y1</span><input type="number" step="0.05" id="fy1" value="${s.y1}">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Corner 2</label>
+        <div class="field-row">
+          <span class="field-label">x2</span><input type="number" step="0.05" id="fx2" value="${s.x2}">
+          <span class="field-label">y2</span><input type="number" step="0.05" id="fy2" value="${s.y2}">
+        </div>
+      </div>`;
+  } else {
+    el.coordFields.innerHTML = `
+      <div class="field-group">
+        <label>Start point</label>
+        <div class="field-row">
+          <span class="field-label">x1</span><input type="number" step="0.05" id="fx1" value="${s.x1}">
+          <span class="field-label">y1</span><input type="number" step="0.05" id="fy1" value="${s.y1}">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>End point</label>
+        <div class="field-row">
+          <span class="field-label">x2</span><input type="number" step="0.05" id="fx2" value="${s.x2}">
+          <span class="field-label">y2</span><input type="number" step="0.05" id="fy2" value="${s.y2}">
+        </div>
+      </div>`;
+  }
+
+  // wire up inputs
+  ['fx1','fy1','fx2','fy2'].forEach(id => {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    inp.addEventListener('input', () => {
+      shapes[selectedIdx][id.slice(1)] = parseFloat(inp.value) || 0;
+      buildShapeList();
+      render();
+    });
+  });
+}
+
+el.chkNowall.addEventListener('change', () => {
+  if (selectedIdx < 0) return;
+  shapes[selectedIdx].nowall = el.chkNowall.checked;
+  buildShapeList(); render();
+});
+
+el.btnDelete.addEventListener('click', () => {
+  if (selectedIdx < 0) return;
+  shapes.splice(selectedIdx, 1);
+  selectedIdx = Math.min(selectedIdx, shapes.length - 1);
+  buildShapeList(); buildCoordEditor(); render();
+});
+
+// ── Add shape buttons ──────────────────────────────────────────────
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.dataset.add;
+    let s;
+    if (type === 'rect')      s = { type:'rect', x1:-0.25, y1:-0.25, x2:0.25, y2:0.25, nowall:false };
+    else if (type === 'oval') s = { type:'oval', x1:-0.25, y1:-0.25, x2:0.25, y2:0.25, nowall:false };
+    else if (type === 'line') s = { type:'line', x1:-0.25, y1:0, x2:0.25, y2:0 };
+    else                      s = { type:'wall', x1:-0.25, y1:0, x2:0.25, y2:0 };
+    shapes.push(s);
+    selectedIdx = shapes.length - 1;
+    buildShapeList(); buildCoordEditor(); render();
+  });
+});
+
+// ── Component name ─────────────────────────────────────────────────
+el.compName.addEventListener('input', () => {
+  el.headerTitle.textContent = el.compName.value || 'New Component';
+  updateOutput();
+});
+
+// ── Output ─────────────────────────────────────────────────────────
+function updateOutput(){
+  const name = el.compName.value.trim().replace(/\s+/g,'_') || 'my_component';
+  const lines = [`@component ${name}`];
+  shapes.forEach(s => {
+    if (s.type === 'rect'){
+      const flags = s.nowall ? ', nowall' : '';
+      lines.push(`rect: ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}${flags}`);
+    } else if (s.type === 'oval'){
+      const flags = s.nowall ? ', nowall' : '';
+      lines.push(`oval: ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}${flags}`);
+    } else if (s.type === 'line'){
+      lines.push(`line: ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}`);
+    } else if (s.type === 'wall'){
+      lines.push(`wall: ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}`);
+    }
+  });
+  lines.push('@end');
+  el.outputText.value = lines.join('\n');
+}
+
+function copyOutput(){
+  navigator.clipboard.writeText(el.outputText.value).then(() => {
+    const t = document.createElement('div');
+    t.textContent = 'Copied to clipboard!';
+    t.style.cssText='position:fixed;bottom:20px;right:20px;background:#49a586;color:#fff;padding:10px 16px;border-radius:4px;font-size:13px;z-index:999;font-family:monospace';
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(), 2000);
+  });
+}
+document.getElementById('btnCopyOutput').addEventListener('click', copyOutput);
+document.getElementById('btnCopyOutput2').addEventListener('click', copyOutput);
+
+// ── Zoom & pan ─────────────────────────────────────────────────────
+el.canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.15 : 1/1.15;
+  zoom = Math.max(10, Math.min(500, zoom * factor));
+  render();
+}, { passive: false });
+
+let isPanning = false, panStart = [0,0], panOffset = [0,0];
+el.canvas.addEventListener('mousedown', e => {
+  if (e.button !== 0) return;
+  isPanning = true;
+  panStart = [e.clientX - panX, e.clientY - panY];
+  el.canvas.style.cursor = 'grabbing';
+});
+window.addEventListener('mousemove', e => {
+  if (isPanning){
+    panX = e.clientX - panStart[0];
+    panY = e.clientY - panStart[1];
+    render();
+  }
+  // HUD
+  const rect = el.canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+  const [lx, ly] = toLocal(sx, sy);
+  el.coordHud.innerHTML = `x <b>${(Math.round(lx*100)/100).toFixed(2)}</b> · y <b>${(Math.round(ly*100)/100).toFixed(2)}</b>`;
+});
+window.addEventListener('mouseup', () => {
+  isPanning = false;
+  el.canvas.style.cursor = 'crosshair';
+});
+
+el.btnFit.addEventListener('click', () => {
+  zoom = 80; panX = 0; panY = 0; render();
+});
+
+if (window.ResizeObserver){
+  new ResizeObserver(() => render()).observe(el.canvasFrame);
+}
+
+// ── Init — load bed as example ─────────────────────────────────────
+el.compName.value = 'bed';
+el.headerTitle.textContent = 'bed';
+shapes = [
+  { type:'rect', x1:-0.45, y1:-1.00, x2:0.45, y2:1.00, nowall:false },
+  { type:'rect', x1:-0.38, y1: 0.00, x2:0.38, y2:0.88, nowall:true },
+  { type:'line', x1:-0.45, y1: 0.00, x2:0.45, y2:0.00 },
+  { type:'rect', x1:-0.38, y1:-0.90, x2:0.38, y2:0.00, nowall:true },
+  { type:'oval', x1:-0.22, y1:-0.72, x2:0.22, y2:-0.38, nowall:false },
+];
+buildShapeList();
+buildCoordEditor();
+render();
+
+})();
+</script>
+</body>
+</html>

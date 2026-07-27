@@ -11,6 +11,12 @@
       "file": "json/tower.json",
       "title": "Station Tower — Level 3",
       "description": "Modular space station tower level — offices, conference room, observation deck."
+    },
+    {
+      "id": "venue",
+      "file": "json/venue.json",
+      "title": "Venue",
+      "description": "Session 10 — All That Glitters venue map. Profunda Beehive, Enceladus."
     }
   ]
 }

@@ -176,15 +176,14 @@ el.canvas.addEventListener('mousedown', (e) => {
   const idx = findNearestPlacement(e.clientX, e.clientY);
 
   if (e.shiftKey && idx >= 0){
-    // Shift+click on component — toggle selection, no pan
     if (selectedIndices.has(idx)) selectedIndices.delete(idx);
     else selectedIndices.add(idx);
+    updateInfoBar();
     renderCanvas();
     return;
   }
 
   if (e.shiftKey){
-    // Shift+click empty space — pan
     isPanning = true;
     panStartX = e.clientX; panStartY = e.clientY;
     panStartOffsetX = panX; panStartOffsetY = panY;
@@ -193,11 +192,9 @@ el.canvas.addEventListener('mousedown', (e) => {
   }
 
   if (idx >= 0){
-    // Plain click on component
     if (!selectedIndices.has(idx)){
       selectedIndices = new Set([idx]);
     }
-    // Start drag for all selected
     const wpos = screenToWorld(e.clientX, e.clientY);
     dragState = {
       offsets: [...selectedIndices].map(i => ({
@@ -208,14 +205,15 @@ el.canvas.addEventListener('mousedown', (e) => {
     };
     el.canvas.style.cursor = 'move';
     e.preventDefault();
+    updateInfoBar();
     renderCanvas();
   } else {
-    // Click on empty space — deselect + pan
     selectedIndices = new Set();
     isPanning = true;
     panStartX = e.clientX; panStartY = e.clientY;
     panStartOffsetX = panX; panStartOffsetY = panY;
     el.canvas.style.cursor = 'grabbing';
+    updateInfoBar();
     renderCanvas();
   }
 });
@@ -319,16 +317,64 @@ if (window.ResizeObserver){
 }
 
 el.canvas.addEventListener('mousemove', (e) => {
-  if (!viewport){ el.hud.innerHTML = 'x — · y —'; return; }
+  if (!viewport){ el.hud.style.display = 'none'; return; }
   const rect = el.canvas.getBoundingClientRect();
   const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
   hoverWx = viewport.x1 + (sx - viewport.offsetX) / viewport.scale;
   hoverWy = viewport.y2 - (sy - viewport.offsetY) / viewport.scale;
+
+  // Coords — fixed width, never grows
+  el.hud.style.display = '';
   el.hud.innerHTML = `x <b>${fmt(hoverWx)}</b> · y <b>${fmt(hoverWy)}</b>`;
+
+  // Selection info — separate upper-right element
+  updateInfoBar();
+
   if (showAnchors || dragState) renderCanvas();
 });
+
+function updateInfoBar(){
+  let info = '';
+  if (selectedIndices.size && currentDoc && currentDoc.placements){
+    const sel = [...selectedIndices];
+    if (sel.length === 1){
+      const p = currentDoc.placements[sel[0]];
+      if (p){
+        const shapes = currentDoc.parsedComponents && currentDoc.parsedComponents[p.name];
+        if (shapes && shapes.length){
+          const xs = shapes.flatMap(s => [s.x1, s.x2]);
+          const ys = shapes.flatMap(s => [s.y1, s.y2]);
+          const lw = fmt((Math.max(...xs) - Math.min(...xs)) * (p.scale || 1));
+          const lh = fmt((Math.max(...ys) - Math.min(...ys)) * (p.scale || 1));
+          info = `<b>${p.name}</b> &nbsp;${lw} × ${lh} m`;
+        } else {
+          info = `<b>${p.name}</b>`;
+        }
+      }
+    } else {
+      info = `<b>${sel.length}</b> selected`;
+    }
+  } else if (currentDoc && currentDoc.shapes && hoverWx !== null){
+    const hovered = currentDoc.shapes.find(s =>
+      (s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle') &&
+      hoverWx >= Math.min(s.x1,s.x2) && hoverWx <= Math.max(s.x1,s.x2) &&
+      hoverWy >= Math.min(s.y1,s.y2) && hoverWy <= Math.max(s.y1,s.y2)
+    );
+    if (hovered){
+      info = `${fmt(Math.abs(hovered.x2-hovered.x1))} × ${fmt(Math.abs(hovered.y2-hovered.y1))} m`;
+    }
+  }
+
+  if (info){
+    el.infoBar.style.display = '';
+    el.infoBar.innerHTML = info;
+  } else {
+    el.infoBar.style.display = 'none';
+  }
+}
 el.canvas.addEventListener('mouseleave', () => {
-  el.hud.innerHTML = 'x — · y —';
+  el.hud.style.display = 'none';
+  el.infoBar.style.display = 'none';
   hoverWx = null; hoverWy = null;
   if (showAnchors) renderCanvas();
 });
@@ -350,9 +396,13 @@ el.btnNew.addEventListener('click', () => {
   newArmed = false;
   el.btnNew.textContent = 'New';
   el.btnNew.classList.remove('confirm');
+  const { script: newScript } = makeUntitledScript();
   docMeta = { created: new Date(), modified: new Date() };
-  el.script.value = `title: Untitled Drawing\nunits: m\nworld: -20, -15, 20, 15\ngrid: 1.5\n\nrect: -18, -13, 18, 13\n`;
+  el.script.value = newScript;
   zoomLevel = 1; panX = 0; panY = 0;
+  selectedIndices = new Set();
+  history.replaceState(null, '', window.location.pathname);
+  el.drawingSelect.value = '';
   syncGutter();
   runScript();
 });
@@ -442,6 +492,10 @@ el.btnPng.addEventListener('click', () => {
              currentDoc.gridSize);
 
   currentDoc.shapes
+    .filter(s => s.type === 'image')
+    .forEach(s => drawImageShape(s, toScreen));
+
+  currentDoc.shapes
     .filter(s => ['rect','oval','semicircle'].includes(s.type))
     .forEach(s => drawStructure(s, toScreen, exportScale, currentDoc.gridSize,
                                 currentDoc.wallWidth, currentDoc.wallColor));
@@ -459,6 +513,17 @@ el.btnPng.addEventListener('click', () => {
     drawPlacements(currentDoc.placements, currentDoc.parsedComponents,
                    toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor,
                    currentDoc.featureThickness, currentDoc.componentThickness);
+  }
+
+  // world border
+  {
+    const [bx1, by1] = toScreen(x1, y2);
+    const [bx2, by2] = toScreen(x2, y1);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(95,201,166,0.45)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx1, by1, bx2 - bx1, by2 - by1);
+    ctx.restore();
   }
 
   // Restore live context
@@ -481,9 +546,36 @@ function slug(s){
   return base || 'diagram';
 }
 
+// Return the next unclaimed "Untitled Drawing (N)" name using localStorage
+function nextUntitledName(){
+  let claimed;
+  try { claimed = new Set(JSON.parse(localStorage.getItem('cad-untitled-names') || '[]')); }
+  catch(e) { claimed = new Set(); }
+
+  // 'Untitled Drawing' is the base; then (1), (2), ...
+  if (!claimed.has('Untitled Drawing')) return 'Untitled Drawing';
+  let n = 1;
+  while (claimed.has(`Untitled Drawing (${n})`)) n++;
+  return `Untitled Drawing (${n})`;
+}
+
+function claimUntitledName(name){
+  let claimed;
+  try { claimed = new Set(JSON.parse(localStorage.getItem('cad-untitled-names') || '[]')); }
+  catch(e) { claimed = new Set(); }
+  claimed.add(name);
+  try { localStorage.setItem('cad-untitled-names', JSON.stringify([...claimed])); }
+  catch(e) {}
+}
+
+function makeUntitledScript(){
+  const name = nextUntitledName();
+  claimUntitledName(name);
+  return { name, script: SAMPLE_SCRIPT.replace('Untitled Drawing', name) };
+}
+
 /* ============================= init ============================= */
 
-// Load drawings index and populate the dropdown, then load the first drawing
 (async function initDrawings(){
   const sel = el.drawingSelect;
   let drawings = [];
@@ -493,22 +585,34 @@ function slug(s){
     const data = await res.json();
     drawings = data.drawings || [];
   } catch(e) {
-    // No drawings.json (e.g. opened as file://), fall back to SAMPLE_SCRIPT
+    // No drawings.json — file:// or missing, just show blank doc
+  }
+
+  // Always show a blank untitled document on load
+  function loadBlank(){
+    const { script } = makeUntitledScript();
+    docMeta = { created: new Date(), modified: new Date() };
+    el.script.value = script;
+    zoomLevel = 1; panX = 0; panY = 0;
+    selectedIndices = new Set();
+    syncGutter();
+    runScript();
   }
 
   if (drawings.length){
-    // Populate dropdown
-    sel.innerHTML = '';
+    // Populate dropdown with a placeholder first option
+    sel.innerHTML = '<option value="" disabled>— Open drawing… —</option>';
     for (const d of drawings){
       const opt = document.createElement('option');
       opt.value = d.file;
+      opt.dataset.id = d.id;
       opt.textContent = d.title;
       opt.title = d.description || '';
       sel.appendChild(opt);
     }
+    sel.value = ''; // nothing selected
 
-    // Load selected drawing into editor
-    async function loadDrawing(file){
+    async function loadDrawing(file, id){
       try {
         const res = await fetch(file);
         const data = await res.json();
@@ -518,22 +622,30 @@ function slug(s){
         selectedIndices = new Set();
         syncGutter();
         runScript();
+        if (id) history.replaceState(null, '', '#' + id);
       } catch(e) {
         el.log.innerHTML = `<div class="err-line"><b>failed to load drawing:</b> ${e.message}</div>`;
       }
     }
 
-    sel.addEventListener('change', () => loadDrawing(sel.value));
+    sel.addEventListener('change', () => {
+      if (!sel.value) return;
+      const opt = sel.options[sel.selectedIndex];
+      loadDrawing(sel.value, opt.dataset.id);
+    });
 
-    // Load the first drawing on startup
-    await loadDrawing(drawings[0].file);
+    // Honour URL hash if it matches a known drawing
+    const hashId = window.location.hash.slice(1);
+    const matched = hashId && drawings.find(d => d.id === hashId);
+    if (matched){
+      [...sel.options].forEach(o => { if (o.dataset.id === hashId) sel.value = o.value; });
+      await loadDrawing(matched.file, matched.id);
+    } else {
+      // No hash — start with blank untitled doc
+      loadBlank();
+    }
   } else {
-    // Fallback: blank drawing, hide the dropdown
     sel.style.display = 'none';
-    docMeta.created = new Date();
-    docMeta.modified = docMeta.created;
-    el.script.value = SAMPLE_SCRIPT;
-    syncGutter();
-    runScript();
+    loadBlank();
   }
 })();

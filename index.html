@@ -23,10 +23,12 @@
       <button class="btn" id="btnSave">Save JSON</button>
       <button class="btn" id="btnPng">Export PNG</button>
       <button class="btn" id="btnDebug" title="Show bounding corners and centers">⊕ Anchors</button>
+      <a href="component-editor.html" class="btn" target="_blank" title="Open Component Designer">⬡ Components</a>
       <span style="width:1px;background:var(--hairline);align-self:stretch;margin:4px 2px;display:inline-block;"></span>
       <button class="btn" id="btnZoomIn"  title="Zoom in (+)">＋</button>
       <button class="btn" id="btnZoomOut" title="Zoom out (−)">－</button>
       <button class="btn" id="btnZoomReset" title="Reset zoom (1)">1:1</button>
+      <a href="component-editor.html" class="btn" title="Open component designer">⬡ Components</a>
       <input type="file" id="fileInput" accept="application/json,.json">
     </div>
   </header>
@@ -65,8 +67,13 @@
           <span class="ex"><code>wall: x1, y1, x2, y2 [, width]</code><br>Draws a thick structural line. Optional 5th value overrides thickness.</span>
           <span class="ex"><code>door: x1, y1, x2, y2</code><br>Sliding door — draws a wall-thickness line between the two endpoints, then a hollow panel rectangle centred on the wall, inset 0.3 m from each end and slightly thicker than the wall. Works at any angle.</span>
           <span class="ex"><code>label: x1, y1, x2, y2, text</code><br>Centers TEXT (auto-uppercased) inside the box. <b>Box height controls font size</b> — use the same height on all labels for consistent sizing. <code>text:</code> works too.</span>
-          <span class="ex"><code>place: componentName, x, y [, scale [, angle]]</code><br>Places a component at world position (x,y). Optional scale (default 1) and rotation angle in degrees CCW from +X axis (default 0, facing up = 90°). Built-in: <code>chair_rect</code>.</span>
-          <span class="ex"><code>@component myName … @end</code><br>Defines a reusable component in local coords (origin at centre). Supports <code>rect</code>, <code>oval</code>, <code>wall</code>, <code>label</code> inside.</span>
+          <span class="ex"><code>rotate: angleDeg [, cx, cy]</code><br>Rotates the previous shape's bounding box around its own centre (default) or a given world point. e.g. <code>rotate: 45</code> or <code>rotate: 30, 0, 0</code>.</span>
+          <span class="ex"><code>translate: dx, dy</code><br>Shifts the previous shape by (dx, dy) world units. e.g. <code>translate: 5, -3</code>.</span>
+          <span class="ex"><code>^#rrggbb</code><br>Sets a background fill colour on the previous shape (e.g. <code>^#2a3a2a</code>). Drawn under the grid.</span>
+          <span class="ex"><code>^img: url</code><br>Sets a background image on the previous shape from a URL or relative path. Drawn under the grid, scaled to fit.</span>
+          <span class="ex"><code>image: x1, y1, x2, y2, url</code><br>Loads an image from a URL or relative filename and draws it scaled to the given rect. Shows a placeholder while loading. <code>img:</code> works too.</span>
+          <span class="ex"><code>place: componentName, x, y [, scale [, angle]]</code><br>Places a component at world position (x,y). Optional scale (default 1) and rotation angle in degrees CCW from +X axis (default 0, facing up = 90°). Built-in: <code>chair_rect</code>, <code>bed</code>.</span>
+          <span class="ex"><code>@component myName … @end</code><br>Defines a reusable component in local coords (origin at centre). Supports <code>rect</code>, <code>oval</code>, <code>wall</code>, <code>line</code>, <code>label</code> inside. <code>line:</code> is a detail line using <code>componentthickness</code> with round caps — use it for furniture marks rather than structural walls.</span>
           <span class="ex"><code># comment</code> or <code>// comment</code><br>Ignored.</span>
         </div>
       </details>
@@ -81,7 +88,8 @@
         <span class="tick-tm"></span><span class="tick-bm"></span>
         <span class="tick-ml"></span><span class="tick-mr"></span>
         <span class="crosshair-h"></span><span class="crosshair-v"></span>
-        <div class="hud" id="hud">x — · y —</div>
+        <div class="hud" id="hud" style="display:none;"></div>
+        <div class="info-bar" id="infoBar" style="display:none;"></div>
       </div>
       <div class="statusline">
         <div id="worldStatus">world undefined</div>

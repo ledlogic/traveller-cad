@@ -26,6 +26,7 @@ const el = {
   worldStatus: document.getElementById('worldStatus'),
   scaleStatus: document.getElementById('scaleStatus'),
   hud: document.getElementById('hud'),
+  infoBar: document.getElementById('infoBar'),
   canvasHost: document.getElementById('canvasHost'),
   canvas: document.getElementById('stage-canvas'),
   btnRender: document.getElementById('btnRender'),

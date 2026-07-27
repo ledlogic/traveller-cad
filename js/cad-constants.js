@@ -23,12 +23,10 @@ const LABEL_FONT = "'Univers', sans-serif";
 const LABEL_WEIGHT = '300';
 
 const SAMPLE_SCRIPT =
-`title: New Drawing
+`title: Untitled Drawing
 units: m
 world: -20, -15, 20, 15
 grid: 1.5
 wallwidth: 0.25
 wallcolor: #1e4a3d
-
-rect: -18, -13, 18, 13
 `;

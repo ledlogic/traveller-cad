@@ -3,7 +3,62 @@
    Starship CAD
    ===================== */
 
-/* ============================= rendering ============================= */
+/* ============================= image cache ============================= */
+const imageCache = {}; // src → HTMLImageElement (or 'loading' / 'error')
+
+function loadImage(src){
+  if (imageCache[src]) return imageCache[src];
+  imageCache[src] = 'loading';
+  const img = new Image();
+  img.onload  = () => { imageCache[src] = img; renderCanvas(); };
+  img.onerror = () => { imageCache[src] = 'error'; renderCanvas(); };
+  img.src = src;
+  return 'loading';
+}
+
+function drawImageShape(s, toScreen){
+  const cached = loadImage(s.src);
+  const [sx1, sy1] = toScreen(s.x1, s.y1);
+  const [sx2, sy2] = toScreen(s.x2, s.y2);
+  const left = Math.min(sx1,sx2), top = Math.min(sy1,sy2);
+  const w = Math.abs(sx2-sx1), h = Math.abs(sy2-sy1);
+  if (w < 1 || h < 1) return;
+
+  ctx.save();
+  if (cached instanceof HTMLImageElement){
+    ctx.drawImage(cached, left, top, w, h);
+  } else if (cached === 'loading'){
+    // placeholder while loading
+    ctx.strokeStyle = 'rgba(95,201,166,0.4)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4,3]);
+    ctx.strokeRect(left, top, w, h);
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(95,201,166,0.15)';
+    ctx.fillRect(left, top, w, h);
+    ctx.fillStyle = '#5f7a73';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('loading…', left + w/2, top + h/2);
+  } else {
+    // error
+    ctx.strokeStyle = 'rgba(217,119,106,0.6)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4,3]);
+    ctx.strokeRect(left, top, w, h);
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#d9776a';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const name = s.src.split('/').pop();
+    ctx.fillText(`⚠ ${name}`, left + w/2, top + h/2);
+  }
+  ctx.restore();
+}
+
+
 function niceStep(scale, gridSize){
   // Pick a ruler tick step that gives readable round numbers.
   // Prefer multiples of 5; target ~90px between ticks.
@@ -65,6 +120,11 @@ function renderCanvas(){
 
   // rulers
   drawRulers(toScreen, x1, y1, x2, y2, scale, offsetX, offsetY, drawW, drawH, currentDoc.gridSize);
+
+  // images first (below structures)
+  currentDoc.shapes
+    .filter(s => s.type === 'image')
+    .forEach(s => drawImageShape(s, toScreen));
 
   // structures first (fill + grid + outline)
   currentDoc.shapes
@@ -168,6 +228,17 @@ function renderCanvas(){
   }
 
   // status line
+  // world border — thin teal hairline at exact world extents
+  {
+    const [bx1, by1] = toScreen(x1, y2); // top-left in screen space
+    const [bx2, by2] = toScreen(x2, y1); // bottom-right in screen space
+    ctx.save();
+    ctx.strokeStyle = 'rgba(95,201,166,0.45)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx1, by1, bx2 - bx1, by2 - by1);
+    ctx.restore();
+  }
+
   el.worldStatus.innerHTML = `world <span>${fmt(x1)}, ${fmt(y1)}</span> to <span>${fmt(x2)}, ${fmt(y2)}</span> &nbsp;·&nbsp; units <span>${currentDoc.units || '—'}</span> &nbsp;·&nbsp; grid <span>${currentDoc.gridSize}</span>`;
   el.scaleStatus.textContent = `zoom ${Math.round(zoomLevel * 100)}% · 1 unit ≈ ${scale.toFixed(1)} px`;
 }
@@ -264,6 +335,28 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor){
   shapePath(s, toScreen, scale);
   ctx.fillStyle = PAPER_COLOR;
   ctx.fill();
+
+  // Background colour or image, clipped to shape
+  if (s.bgColor || s.bgImage){
+    ctx.save();
+    shapePath(s, toScreen, scale);
+    ctx.clip();
+    if (s.bgColor){
+      ctx.fillStyle = s.bgColor;
+      ctx.fill();
+    }
+    if (s.bgImage){
+      const cached = loadImage(s.bgImage);
+      if (cached instanceof HTMLImageElement){
+        const [sx1, sy1] = toScreen(s.x1, s.y1);
+        const [sx2, sy2] = toScreen(s.x2, s.y2);
+        const left = Math.min(sx1,sx2), top = Math.min(sy1,sy2);
+        const w = Math.abs(sx2-sx1), h = Math.abs(sy2-sy1);
+        ctx.drawImage(cached, left, top, w, h);
+      }
+    }
+    ctx.restore();
+  }
 
   ctx.save();
   shapePath(s, toScreen, scale);
@@ -416,7 +509,7 @@ function drawDoor(s, toScreen, scale, wallWidth, docWallColor, featureThickness)
 }
 
 function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
-  const baseColor = docWallColor || WALL_COLOR;
+  const baseColor = s.color || docWallColor || WALL_COLOR;
   const [sx1, sy1] = toScreen(s.x1, s.y1);
   const [sx2, sy2] = toScreen(s.x2, s.y2);
   const left = Math.min(sx1, sx2), right = Math.max(sx1, sx2);

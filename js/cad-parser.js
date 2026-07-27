@@ -62,6 +62,10 @@ function parseScript(text){
           const n = parseNumbers(rest, 4);
           const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
           shapes.push({ type:'wall', x1:n[0],y1:n[1],x2:n[2],y2:n[3], color: cm?parseHex(cm[1]):null });
+        } else if (key === 'line'){
+          const n = parseNumbers(rest, 4);
+          const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
+          shapes.push({ type:'line', x1:n[0],y1:n[1],x2:n[2],y2:n[3], color: cm?parseHex(cm[1]):null });
         } else if (key === 'oval'){
           const n = parseNumbers(rest, 4);
           const nowall = /\bnowall\b/i.test(rest);
@@ -93,6 +97,44 @@ function parseScript(text){
     const line = raw.trim();
     if (!line) return;
     if (line.startsWith('#') || line.startsWith('//')) return;
+
+    // ^ command — auto-label, background colour, or background image on the previous shape
+    if (line.startsWith('^')){
+      const rest = line.slice(1).trim();
+      if (!rest){ errors.push({lineNum, msg:'^ needs text, #hex, or img: url'}); return; }
+
+      // find last applicable shape
+      const prev = [...doc.shapes].reverse().find(s =>
+        ['rect','oval','semicircle','door','wall','image'].includes(s.type));
+      if (!prev){ errors.push({lineNum, msg:'^ has no preceding shape'}); return; }
+
+      // ^#hex — set background colour on the previous shape
+      if (/^#[0-9a-fA-F]{3,6}$/.test(rest)){
+        try { prev.bgColor = parseHex(rest.slice(1)); } catch(e) { errors.push({lineNum, msg: e.message}); }
+        return;
+      }
+
+      // ^img: url — set background image on the previous shape
+      if (rest.toLowerCase().startsWith('img:')){
+        prev.bgImage = rest.slice(4).trim();
+        return;
+      }
+
+      // ^text [#hex] — auto-label centred on previous shape, optional text colour
+      const colorMatch = rest.match(/\s+(#[0-9a-fA-F]{3,6})$/);
+      const text = colorMatch ? rest.slice(0, -colorMatch[0].length).trim() : rest;
+      let textColor = null;
+      if (colorMatch){ try { textColor = parseHex(colorMatch[1].slice(1)); } catch(e){} }
+      const cx = (prev.x1 + prev.x2) / 2;
+      const cy = (prev.y1 + prev.y2) / 2;
+      const hw = Math.abs(prev.x2 - prev.x1) / 2;
+      doc.shapes.push({
+        type:'label',
+        x1: cx - hw, y1: cy - 1, x2: cx + hw, y2: cy + 1,
+        text, color: textColor, lineNum
+      });
+      return;
+    }
 
     const m = line.match(/^([A-Za-z_]+)\s*:?\s*(.*)$/);
     if (!m){ errors.push({lineNum, msg:`could not parse "${raw.trim()}"`}); return; }
@@ -223,6 +265,49 @@ function parseScript(text){
             x1:parseFloat(m2[1]), y1:parseFloat(m2[2]), x2:parseFloat(m2[3]), y2:parseFloat(m2[4]),
             text, lineNum
           });
+          break;
+        }
+        case 'image':
+        case 'img': {
+          // image: x1, y1, x2, y2, url-or-filename
+          const m2 = rest.match(/^\s*(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)\s*,?\s*(.*)$/);
+          if (!m2) throw new Error(`expected: x1, y1, x2, y2, url`);
+          const src = m2[5].trim();
+          if (!src) throw new Error(`image url/filename is empty`);
+          doc.shapes.push({
+            type:'image',
+            x1:parseFloat(m2[1]), y1:parseFloat(m2[2]), x2:parseFloat(m2[3]), y2:parseFloat(m2[4]),
+            src, img:null, lineNum
+          });
+          break;
+        }
+        case 'rotate': {
+          // rotate: angleDeg [, cx, cy] — rotates previous shape's bbox around its centre or given point
+          const parts = rest.split(/[\s,]+/).filter(Boolean);
+          if (!parts.length) throw new Error('expected: angleDeg [, cx, cy]');
+          const angleDeg = parseFloat(parts[0]);
+          if (Number.isNaN(angleDeg)) throw new Error('invalid angle');
+          const prev = [...doc.shapes].reverse().find(s =>
+            ['rect','oval','semicircle','wall','door','label','image'].includes(s.type));
+          if (!prev) throw new Error('no preceding shape to rotate');
+          const angle = angleDeg * Math.PI / 180;
+          const cos = Math.cos(angle), sin = Math.sin(angle);
+          const pcx = parts.length >= 3 ? parseFloat(parts[1]) : (prev.x1 + prev.x2) / 2;
+          const pcy = parts.length >= 3 ? parseFloat(parts[2]) : (prev.y1 + prev.y2) / 2;
+          const rotPt = (x, y) => [pcx+(x-pcx)*cos-(y-pcy)*sin, pcy+(x-pcx)*sin+(y-pcy)*cos];
+          const corners = [rotPt(prev.x1,prev.y1),rotPt(prev.x2,prev.y1),rotPt(prev.x1,prev.y2),rotPt(prev.x2,prev.y2)];
+          prev.x1 = Math.min(...corners.map(p=>p[0])); prev.x2 = Math.max(...corners.map(p=>p[0]));
+          prev.y1 = Math.min(...corners.map(p=>p[1])); prev.y2 = Math.max(...corners.map(p=>p[1]));
+          break;
+        }
+        case 'translate': {
+          // translate: dx, dy — shifts the previous shape by (dx, dy)
+          const n = parseNumbers(rest, 2);
+          const prev = [...doc.shapes].reverse().find(s =>
+            ['rect','oval','semicircle','wall','door','label','image'].includes(s.type));
+          if (!prev) throw new Error('no preceding shape to translate');
+          prev.x1 += n[0]; prev.x2 += n[0];
+          prev.y1 += n[1]; prev.y2 += n[1];
           break;
         }
         default:

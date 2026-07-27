@@ -353,3 +353,19 @@
 }
 #drawingSelect:hover { border-color: var(--ink-teal); color: var(--text-primary); }
 #drawingSelect option { background: var(--bg-panel); color: var(--text-primary); }
+
+/* info bar — upper right of canvas frame */
+.info-bar {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 10.5px;
+  color: var(--text-faint);
+  background: rgba(13,18,21,0.72);
+  padding: 3px 8px;
+  border-radius: 3px;
+  pointer-events: none;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.info-bar b { color: var(--ink-teal-bright); font-weight: 600; }

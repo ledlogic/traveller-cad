@@ -18,6 +18,21 @@ const BUILTIN_COMPONENTS = {
     // right arm
     { type:'rect', x1: 0.22, y1:-0.15, x2:0.27, y2:0.18, nowall:false },
   ],
+
+  // bed: 0.9m wide x 2.0m long. Origin at centre. Head faces +Y at angle=0.
+  // Matches Traveller geomorph style: frame, sleeping field, mid rail, foot section, pillow oval.
+  bed: [
+    // outer frame
+    { type:'rect', x1:-0.45, y1:-1.00, x2:0.45, y2:1.00, nowall:false },
+    // sleeping field (head side — top 60%)
+    { type:'rect', x1:-0.38, y1:-0.00, x2:0.38, y2:0.88, nowall:true },
+    // mid rail — component detail line across the centre
+    { type:'line', x1:-0.45, y1:0.00, x2:0.45, y2:0.00 },
+    // foot section (bottom 35%)
+    { type:'rect', x1:-0.38, y1:-0.90, x2:0.38, y2:0.00, nowall:true },
+    // pillow / headboard oval in foot section
+    { type:'oval', x1:-0.22, y1:-0.72, x2:0.22, y2:-0.38, nowall:false },
+  ],
 };
 
 /* ============================= component rendering ============================= */
@@ -76,6 +91,13 @@ function drawPlacements(placements, parsedComponents, toScreen, scale, wallWidth
       } else if (s.type === 'wall'){
         ctx.strokeStyle = s.color || wallColor || WALL_COLOR;
         ctx.lineWidth = lw; ctx.lineCap = 'square';
+        ctx.beginPath();
+        ctx.moveTo(s.x1, -s.y1); ctx.lineTo(s.x2, -s.y2);
+        ctx.stroke();
+      } else if (s.type === 'line'){
+        // component detail line — uses componentThickness, round caps
+        ctx.strokeStyle = s.color || wallColor || WALL_COLOR;
+        ctx.lineWidth = compLW; ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(s.x1, -s.y1); ctx.lineTo(s.x2, -s.y2);
         ctx.stroke();
