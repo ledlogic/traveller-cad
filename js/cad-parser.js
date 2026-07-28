@@ -255,7 +255,7 @@ function parseScript(text){
         doc.shapes.push({
           type:'label',
           x1: cx - hw, y1: cy - 1, x2: cx + hw, y2: cy + 1,
-          text, lineNum
+          text, lineNum, staffOnly: prev.staffOnly || false
         });
         return;
       }
@@ -271,22 +271,26 @@ function parseScript(text){
         // Inherit textRotation from the most recent primary label on this shape
         const prevLabel = [...doc.shapes].reverse().find(s => s.type === 'label' && !s.secondary);
         const textRotation = prevLabel ? prevLabel.textRotation : undefined;
-        // Offset below centre — if rotated, offset along the rotation axis
+        // Place below centre — 1m tall box (half the size of ^text:)
         doc.shapes.push({
           type:'label',
-          x1: cx - hw, y1: cy - 2.5, x2: cx + hw, y2: cy - 0.5,
-          text, lineNum, secondary: true, textRotation
+          x1: cx - hw, y1: cy - 2.2, x2: cx + hw, y2: cy - 1.2,
+          text, lineNum, secondary: true, textRotation, staffOnly: prev.staffOnly || false
         });
         return;
       }
 
       // ^icon: name — draw a small icon centred on the previous shape
-      // Supported: eye, camera, restricted, star, warning
       if (rest.toLowerCase().startsWith('icon:')){
         const iconName = rest.slice(5).trim().toLowerCase();
         const cx = (prev.x1 + prev.x2) / 2;
         const cy = (prev.y1 + prev.y2) / 2;
-        doc.shapes.push({ type:'icon', x: cx, y: cy, icon: iconName, lineNum });
+        // eye icon marks this shape and its parent as staff-only
+        if (iconName === 'eye') prev.staffOnly = true;
+        // Don't draw eye icon on doors — visibility is handled by staffOnly flag alone
+        if (iconName === 'eye' && prev.type === 'door') return;
+        doc.shapes.push({ type:'icon', x: cx, y: cy, icon: iconName, lineNum,
+          staffOnly: iconName === 'eye' || prev.staffOnly || false });
         return;
       }
 

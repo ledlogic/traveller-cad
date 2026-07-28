@@ -42,6 +42,13 @@ el.btnDebug.addEventListener('click', () => {
   renderCanvas();
 });
 
+el.btnStaff.addEventListener('click', () => {
+  showStaff = !showStaff;
+  el.btnStaff.classList.toggle('active', !showStaff); // active = hidden state
+  el.btnStaff.title = showStaff ? 'Hide staff/security corridors' : 'Show staff/security corridors';
+  renderCanvas();
+});
+
 /* ============================= zoom ============================= */
 const ZOOM_STEP = 1.25;
 const ZOOM_MIN  = 0.1;

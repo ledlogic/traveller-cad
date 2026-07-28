@@ -121,9 +121,12 @@ function renderCanvas(){
   // rulers
   drawRulers(toScreen, x1, y1, x2, y2, scale, offsetX, offsetY, drawW, drawH, currentDoc.gridSize);
 
+  // Helper — filter out staff-only shapes when showStaff is false
+  const vis = s => showStaff || !s.staffOnly;
+
   // images first (below structures)
   currentDoc.shapes
-    .filter(s => s.type === 'image')
+    .filter(s => s.type === 'image' && vis(s))
     .forEach(s => drawImageShape(s, toScreen));
 
   // compute elevation range for tinting
@@ -134,37 +137,37 @@ function renderCanvas(){
 
   // structures first (fill + grid + outline)
   currentDoc.shapes
-    .filter(s => s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle')
+    .filter(s => (s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle') && vis(s))
     .forEach(s => drawStructure(s, toScreen, scale, currentDoc.gridSize, currentDoc.wallWidth, currentDoc.wallColor, elevMin, elevRange));
 
   // walls on top
   currentDoc.shapes
-    .filter(s => s.type === 'wall')
+    .filter(s => s.type === 'wall' && vis(s))
     .forEach(s => drawWall(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor));
 
   // doors on top of walls
   currentDoc.shapes
-    .filter(s => s.type === 'door')
+    .filter(s => s.type === 'door' && vis(s))
     .forEach(s => drawDoor(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor, currentDoc.featureThickness));
 
   // stairs
   currentDoc.shapes
-    .filter(s => s.type === 'stairs')
+    .filter(s => s.type === 'stairs' && vis(s))
     .forEach(s => drawStairs(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor));
 
   // hatch fills
   currentDoc.shapes
-    .filter(s => s.type === 'hatch')
+    .filter(s => s.type === 'hatch' && vis(s))
     .forEach(s => drawHatch(s, toScreen, scale, currentDoc.wallWidth, currentDoc.wallColor));
 
   // labels on top of everything
   currentDoc.shapes
-    .filter(s => s.type === 'label')
+    .filter(s => s.type === 'label' && vis(s))
     .forEach(s => drawLabel(s, toScreen, scale, hoverWx, hoverWy, currentDoc.wallColor));
 
   // icons
   currentDoc.shapes
-    .filter(s => s.type === 'icon')
+    .filter(s => s.type === 'icon' && vis(s))
     .forEach(s => drawIcon(s, toScreen, scale, currentDoc.wallColor));
 
   // component placements
@@ -439,7 +442,7 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
   ctx.clip();
   drawGrid(s, toScreen, gridSize);
   ctx.restore();
-  ctx.globalAlpha = 1; // restore before drawing outline
+  // Keep globalAlpha for outline — opacity applies to whole shape including walls
 
   if (s.type === 'semicircle' && !s.nowall){
     const [sx1, sy1] = toScreen(s.x1, s.y1);
@@ -611,7 +614,7 @@ function drawDoor(s, toScreen, scale, wallWidth, docWallColor, featureThickness)
     const isVertical = Math.abs(s.y2 - s.y1) > Math.abs(s.x2 - s.x1) * 2;
     ctx.save();
     ctx.translate(mx, my);
-    if (isVertical) ctx.rotate(Math.PI / 2);
+    if (isVertical) ctx.rotate(-Math.PI / 2);
     ctx.strokeStyle = color;
     ctx.fillStyle = PAPER_COLOR;
     ctx.lineWidth = Math.max(1, FEAT_T * scale * 0.6);
@@ -843,7 +846,7 @@ function drawLabel(s, toScreen, scale, hoverWx, hoverWy, docWallColor){
     }
   }
   const worldBoxH = Math.abs(s.y2 - s.y1);
-  const fontSize = worldBoxH * scale * (s.secondary ? 0.5 : 0.35);
+  const fontSize = worldBoxH * scale * (s.secondary ? 0.28 : 0.35);
   if (fontSize < 2) return;
 
   ctx.save();
@@ -961,8 +964,18 @@ function drawAnchors(s, toScreen, hoverWx, hoverWy){
   const points = [];
 
   if (s.type === 'rect' || s.type === 'oval' || s.type === 'label'){
-    points.push([s.x1, s.y1], [s.x2, s.y1], [s.x1, s.y2], [s.x2, s.y2]);
-    points.push([(s.x1+s.x2)/2, (s.y1+s.y2)/2]);
+    // For rotated labels, show anchors at the rotated visual extents
+    if (s.type === 'label' && s.textRotation){
+      // Centre + rotated corner anchors
+      const cx = (s.x1+s.x2)/2, cy = (s.y1+s.y2)/2;
+      const hw = Math.abs(s.y2-s.y1)/2;  // rotated: height becomes width
+      const hh = Math.abs(s.x2-s.x1)/2;  // rotated: width becomes height
+      points.push([cx-hw, cy-hh],[cx+hw, cy-hh],[cx-hw, cy+hh],[cx+hw, cy+hh]);
+      points.push([cx, cy]);
+    } else {
+      points.push([s.x1, s.y1], [s.x2, s.y1], [s.x1, s.y2], [s.x2, s.y2]);
+      points.push([(s.x1+s.x2)/2, (s.y1+s.y2)/2]);
+    }
   } else if (s.type === 'semicircle'){
     // corners of bounding box + center + midpoints of each edge
     const cx = (s.x1+s.x2)/2, cy = (s.y1+s.y2)/2;

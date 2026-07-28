@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.17
+- **Current version:** v1.26
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,15 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.26 | 2026-07-28 | venue.json updated; anchor points for rotated labels now show rotated bounding box |
+| v1.25 | 2026-07-28 | venue.json updated from upload |
+| v1.24 | 2026-07-27 | `^text:` and `^text2:` labels inherit `staffOnly` from parent shape — hidden with room when Staff toggle is off |
+| v1.23 | 2026-07-27 | `^icon: eye` on a door marks it staffOnly without drawing the eye symbol — door hidden/shown by Staff toggle |
+| v1.22 | 2026-07-27 | Padlock rotates CCW (-90°) for vertical doors so shackle faces left |
+| v1.21 | 2026-07-27 | `^text2:` now renders smaller than `^text:` — 1m tall box vs 2m, 0.28 font multiplier vs 0.35 |
+| v1.20 | 2026-07-27 | `👁 Staff` toolbar toggle — hides all `^icon: eye` shapes (security/staff corridors) and their labels for a guest-view export; button highlights when staff view is hidden |
+| v1.19 | 2026-07-27 | `^opacity:` now applies to wall outline as well as fill — whole shape fades together |
+| v1.18 | 2026-07-27 | venue.json — all `^bg:` background colours removed |
 | v1.17 | 2026-07-27 | venue.json updated from upload; east security corridor confirmed present; duplicate door removed |
 | v1.16 | 2026-07-27 | world updated to -60,-40,60,45; removed duplicate door in security corridor; fixed corridor 3 and lift corridor labels |
 | v1.15 | 2026-07-27 | Export PNG resolution selector — dropdown next to Export PNG button: 10/15/30/50/100/150 px/m; large export confirmation dialog |

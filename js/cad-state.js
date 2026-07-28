@@ -9,6 +9,7 @@ let currentDoc = null;     // parsed {title, units, world, gridSize, wallWidth, 
 let viewport = null;       // {x1,y1,x2,y2,scale,offsetX,offsetY,canvasW,canvasH}
 let debounceTimer = null;
 let showAnchors = false;
+let showStaff = true;   // when false, eye-icon shapes and their labels are hidden
 let hoverWx = null, hoverWy = null;
 let cursorLineNum = -1;   // 1-based line number of cursor in script editor
 let zoomLevel = 1.0;   // multiplier on top of the fit-to-canvas scale
@@ -37,6 +38,7 @@ const el = {
   btnPng: document.getElementById('btnPng'),
   exportRes: document.getElementById('exportRes'),
   btnDebug: document.getElementById('btnDebug'),
+  btnStaff: document.getElementById('btnStaff'),
   btnZoomIn: document.getElementById('btnZoomIn'),
   btnZoomOut: document.getElementById('btnZoomOut'),
   btnZoomReset: document.getElementById('btnZoomReset'),
