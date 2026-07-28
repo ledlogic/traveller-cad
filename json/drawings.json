@@ -3,20 +3,26 @@
     {
       "id": "submarine",
       "file": "json/submarine.json",
-      "title": "Instellarms 'Shield' Submarine — Deck Plan",
+      "title": "Instellarms 'Shield' Submarine \u2014 Deck Plan",
       "description": "Pressure hull with bow and stern domes, bulkhead door, and crew chairs."
     },
     {
       "id": "tower",
       "file": "json/tower.json",
-      "title": "Station Tower — Level 3",
-      "description": "Modular space station tower level — offices, conference room, observation deck."
+      "title": "Station Tower \u2014 Level 3",
+      "description": "Modular space station tower level \u2014 offices, conference room, observation deck."
     },
     {
       "id": "venue",
       "file": "json/venue.json",
       "title": "Venue",
-      "description": "Session 10 — All That Glitters venue map. Profunda Beehive, Enceladus."
+      "description": "Session 10 \u2014 All That Glitters venue map. Profunda Beehive, Enceladus."
+    },
+    {
+      "id": "hatch-demo",
+      "file": "json/hatch-demo.json",
+      "title": "Hatch Fill Demo",
+      "description": "Demonstrates hatch: command \u2014 solid walls, restricted zones, crosshatch, partitions."
     }
   ]
 }

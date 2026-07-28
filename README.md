@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.26
+- **Current version:** v1.28
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,8 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.28 | 2026-07-28 | venue.json updated; hatch-demo.json added to drawings — demonstrates 45/-45° hatch, crosshatch, restricted zones, partitions |
+| v1.27 | 2026-07-28 | PNG export honours Staff toggle — staff corridors hidden in export when toggle is off |
 | v1.26 | 2026-07-28 | venue.json updated; anchor points for rotated labels now show rotated bounding box |
 | v1.25 | 2026-07-28 | venue.json updated from upload |
 | v1.24 | 2026-07-27 | `^text:` and `^text2:` labels inherit `staffOnly` from parent shape — hidden with room when Staff toggle is off |

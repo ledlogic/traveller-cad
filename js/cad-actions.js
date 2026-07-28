@@ -568,35 +568,36 @@ el.btnPng.addEventListener('click', () => {
              currentDoc.gridSize);
 
   currentDoc.shapes
-    .filter(s => s.type === 'image')
+    .filter(s => s.type === 'image' && (showStaff || !s.staffOnly))
     .forEach(s => drawImageShape(s, toScreen));
 
+  const visEx = s => showStaff || !s.staffOnly;
   const elevShapesEx = currentDoc.shapes.filter(s => s.elev !== undefined);
   const elevMinEx = elevShapesEx.length ? Math.min(...elevShapesEx.map(s => s.elev)) : 0;
   const elevMaxEx = elevShapesEx.length ? Math.max(...elevShapesEx.map(s => s.elev)) : 0;
   const elevRangeEx = Math.max(elevMaxEx - elevMinEx, 1);
 
   currentDoc.shapes
-    .filter(s => ['rect','oval','semicircle'].includes(s.type))
+    .filter(s => ['rect','oval','semicircle'].includes(s.type) && visEx(s))
     .forEach(s => drawStructure(s, toScreen, exportScale, currentDoc.gridSize,
                                 currentDoc.wallWidth, currentDoc.wallColor, elevMinEx, elevRangeEx));
   currentDoc.shapes
-    .filter(s => s.type === 'wall')
+    .filter(s => s.type === 'wall' && visEx(s))
     .forEach(s => drawWall(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor));
   currentDoc.shapes
-    .filter(s => s.type === 'door')
+    .filter(s => s.type === 'door' && visEx(s))
     .forEach(s => drawDoor(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor, currentDoc.featureThickness));
   currentDoc.shapes
-    .filter(s => s.type === 'stairs')
+    .filter(s => s.type === 'stairs' && visEx(s))
     .forEach(s => drawStairs(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor));
   currentDoc.shapes
-    .filter(s => s.type === 'hatch')
+    .filter(s => s.type === 'hatch' && visEx(s))
     .forEach(s => drawHatch(s, toScreen, exportScale, currentDoc.wallWidth, currentDoc.wallColor));
   currentDoc.shapes
-    .filter(s => s.type === 'label')
+    .filter(s => s.type === 'label' && visEx(s))
     .forEach(s => drawLabel(s, toScreen, exportScale, null, null, currentDoc.wallColor));
   currentDoc.shapes
-    .filter(s => s.type === 'icon')
+    .filter(s => s.type === 'icon' && visEx(s))
     .forEach(s => drawIcon(s, toScreen, exportScale, currentDoc.wallColor));
 
   if (currentDoc.placements.length){
