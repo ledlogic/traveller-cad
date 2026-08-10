@@ -23,6 +23,12 @@
       "file": "json/hatch-demo.json",
       "title": "Hatch Fill Demo",
       "description": "Demonstrates hatch: command \u2014 solid walls, restricted zones, crosshatch, partitions."
+    },
+    {
+      "id": "pi-building",
+      "file": "json/pi-building.json",
+      "title": "The Pi Building \u2014 Front Elevation",
+      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
     }
   ]
 }
