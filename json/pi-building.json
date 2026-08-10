@@ -1,8 +1,0 @@
-{
-  "id": "the-pi-building",
-  "title": "The Pi Building",
-  "description": "",
-  "created": "2026-08-10T03:18:35.185Z",
-  "modified": "2026-08-10T04:16:27.872Z",
-  "script": "title: The Pi Building\nunits: m\nworld: -50, -20, 50, 20\ngrid: 1.5\nwallwidth: 0.3\nwallcolor: #1e4a6e\n\n# ── CANTILEVER BLOCK FOOTPRINT (overlay, upper level ~40m) ───────────\nrect: -44.5, -16.5, 44.5, 16\n\n# ── WEST TOWER (16.5m x 16.5m footprint, ground level) ───────────────\nrect: -29.75, -8.25, -13.25, 8.25\n^opacity:0.5\n\ndoor: -22.5, 8.25, -20.5, 8.25\n^opacity:0.5\n\nrect: -20.375, 1.125, -22.625, -1.125\n^opacity:0.5\n\ndoor: -22.5, 1.125, -20.5, 1.125\n^opacity:0.5\n\n# ── EAST TOWER (16.5m x 16.5m footprint, ground level) ───────────────\nrect: 13.25, -8.25, 29.75, 8.25\n^opacity:0.5\n\ndoor: 22.5, 8.25, 20.5, 8.25\n^opacity:0.5\n\nrect: 20.375, 1.125, 22.625, -1.125\n^opacity:0.5\n\ndoor: 22.5, 1.125, 20.5, 1.125\n^opacity:0.5\n"
-}

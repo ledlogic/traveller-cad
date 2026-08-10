@@ -25,9 +25,39 @@
       "description": "Demonstrates hatch: command \u2014 solid walls, restricted zones, crosshatch, partitions."
     },
     {
-      "id": "pi-building",
-      "file": "json/pi-building.json",
-      "title": "The Pi Building",
+      "id": "pi-building-0",
+      "file": "json/pi-building-0.json",
+      "title": "The Pi Building - Ground",
+      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+    },
+    {
+      "id": "pi-building-1",
+      "file": "json/pi-building-1.json",
+      "title": "The Pi Building - First",
+      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+    },
+    {
+      "id": "pi-building-2",
+      "file": "json/pi-building-2.json",
+      "title": "The Pi Building - Second",
+      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+    },
+    {
+      "id": "pi-building-3",
+      "file": "json/pi-building-3.json",
+      "title": "The Pi Building - Third",
+      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+    },
+    {
+      "id": "pi-building-4",
+      "file": "json/pi-building-4.json",
+      "title": "The Pi Building - Fourth",
+      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+    },
+    {
+      "id": "pi-building-5",
+      "file": "json/pi-building-5.json",
+      "title": "The Pi Building - Fifth",
       "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
     }
   ]

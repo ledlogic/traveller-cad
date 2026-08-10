@@ -547,22 +547,22 @@ function drawWall(s, toScreen, scale, defaultWidth, docWallColor){
 
 function drawDoor(s, toScreen, scale, wallWidth, docWallColor, featureThickness){
   const WALL_T  = wallWidth || 0.177;
-  const DOOR_T  = WALL_T * 1.51;        // panel half-thickness in world units
+  const DOOR_T  = WALL_T * 1.51;
   const INSET   = 0.3;
   const FEAT_T  = featureThickness || DEFAULT_FEATURE_THICKNESS;
   const color   = s.color || docWallColor || WALL_COLOR;
 
-  // Direction vector along the door
   const dx = s.x2 - s.x1, dy = s.y2 - s.y1;
   const len = Math.hypot(dx, dy);
   if (len < 1e-6) return;
-  const ux = dx / len, uy = dy / len;   // unit along door
-  const nx = -uy,  ny = ux;             // unit normal (perpendicular)
+  const ux = dx / len, uy = dy / len;
+  const nx = -uy,  ny = ux;
 
-  // ── 1. Wall line (full length, wall thickness) ──────────────────
+  // Apply opacity if set
   const [sx1, sy1] = toScreen(s.x1, s.y1);
   const [sx2, sy2] = toScreen(s.x2, s.y2);
   ctx.save();
+  if (s.opacity !== undefined) ctx.globalAlpha = s.opacity;
   ctx.strokeStyle = color;
   ctx.lineCap = 'square';
   ctx.lineWidth = Math.max(2, WALL_T * scale);
