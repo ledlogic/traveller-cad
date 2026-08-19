@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.37
+- **Current version:** v1.38
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,7 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.38 | 2026-08-19 | Pi Building floors 1-5 standardised to floor rect -45,-18,45,18 and world -50,-20,50,20; elevators unchanged |
 | v1.37 | 2026-08-19 | `in` toolbar button toggles ruler and HUD between metres and inches (1.5m = 1in); button shows current unit |
 | v1.36 | 2026-08-19 | drawings.json updated with Pi Building floors 0-5; all pi-building json files added |
 | v1.35 | 2026-08-19 | Cache-busting `?v=1.35` on all script tags; confirmed `^wallwidth:` and `^opacity:` work correctly on walls via parser test |
