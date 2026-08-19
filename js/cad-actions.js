@@ -494,9 +494,15 @@ el.fileInput.addEventListener('change', (e) => {
   const reader = new FileReader();
   reader.onload = () => {
     try{
-      const data = JSON.parse(reader.result);
-      if (typeof data.script !== 'string') throw new Error('file has no "script" field');
-      el.script.value = data.script;
+      let script;
+      if (file.name.endsWith('.tc3')){
+        script = reader.result;
+      } else {
+        const data = JSON.parse(reader.result);
+        if (typeof data.script !== 'string') throw new Error('file has no "script" field');
+        script = data.script;
+      }
+      el.script.value = script;
       // Accept both created/modified (new format) and legacy formats
       docMeta.created  = data.created  ? new Date(data.created)  : new Date();
       docMeta.modified = data.modified ? new Date(data.modified) : new Date();
@@ -521,19 +527,12 @@ el.btnSave.addEventListener('click', () => {
   docMeta.modified = new Date();
   el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
   const title = currentDoc ? currentDoc.title : '';
-  const payload = {
-    id: slug(title) || 'drawing',
-    title,
-    description: '',
-    created: docMeta.created.toISOString(),
-    modified: docMeta.modified.toISOString(),
-    script: el.script.value,
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  // Save as plain .tc3 — raw script text only
+  const blob = new Blob([el.script.value], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = slug(title) + '.json';
+  a.download = slug(title) + '.tc3';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -718,9 +717,15 @@ function makeUntitledScript(){
     async function loadDrawing(file, id){
       try {
         const res = await fetch(file);
-        const data = await res.json();
+        let script;
+        if (file.endsWith('.tc3')){
+          script = await res.text();
+        } else {
+          const data = await res.json();
+          script = data.script || SAMPLE_SCRIPT;
+        }
         docMeta = { created: new Date(), modified: new Date() };
-        el.script.value = data.script || SAMPLE_SCRIPT;
+        el.script.value = script;
         zoomLevel = 1; panX = 0; panY = 0;
         selectedIndices = new Set();
         syncGutter();

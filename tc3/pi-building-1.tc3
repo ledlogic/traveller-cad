@@ -1,0 +1,195 @@
+title: The Pi Building - First
+units: m
+world: -50, -20, 50, 20
+grid: 1.5
+wallwidth: 0.3
+wallcolor: #1e4a6e
+
+# ── FIRST FLOOR
+rect: -45, -18, 45, 18
+
+# ── WEST TOWER (structural core ghost, ground footprint) ─────────────
+rect: -29.75, -8.25, -13.25, 8.25
+^opacity: 0.25
+door: -22.5, 8.25, -20.5, 8.25
+^opacity: 0.25
+rect: -20.375, 1.125, -22.625, -1.125
+^text: Elevator Lobby
+door: -22.5, 1.125, -20.5, 1.125
+
+# ── EAST TOWER (structural core ghost, ground footprint) ─────────────
+rect: 13.25, -8.25, 29.75, 8.25
+^opacity: 0.25
+door: 22.5, 8.25, 20.5, 8.25
+^opacity: 0.25
+rect: 20.375, 1.125, 22.625, -1.125
+^text: Elevator Lobby
+door: 22.5, 1.125, 20.5, 1.125
+
+# ── CENTRAL CORRIDOR (full width, plaza-to-bay circulation spine) ────
+rect: -45, 4.125, 45, 1.125
+^text: Corridor
+
+# ── RECORDS & ARCHIVES (west, plaza side) ─────────────────────────────
+rect: -45, 4.125, -2, 18
+^text: Records & Archives
+door: -36, 4.125, -33, 4.125
+
+door: -22.5, 4.125, -20.5, 4.125
+
+door: -11, 4.125, -8, 4.125
+
+# ── ARCHIVE STORAGE (west, bay side) ──────────────────────────────────
+rect: -45, -18, -2, 1.125
+^text: Archive Storage (Bay Side)
+door: -36, 1.125, -33, 1.125
+
+door: -11, 1.125, -8, 1.125
+
+# ── STRUCTURE NW
+hatch: -18, 18, -26, 14, 45, 1
+
+# ── STRUCTURE W
+hatch: -45, 4, -42, -4, 45, 1
+
+# ── STRUCTURE SW
+hatch: -18, -18, -26, -14, 45, 1
+
+# ── NAVAL LIAISON OFFICES (east, plaza side) ──────────────────────────
+rect: 2, 4.125, 42, 18
+^text: Naval Liaison Offices
+door: 24, 4.125, 26, 4.125
+
+# ── ROOM 111
+rect: 2, 18, 6, 14
+^text: 111
+^wallwidth:0.125
+
+# ── ROOM 112
+rect: 6, 18, 10, 14
+^text: 112
+^wallwidth:0.125
+
+# ── ROOM 113
+rect: 10, 18, 14, 14
+^text: 113
+^wallwidth:0.125
+
+# ── ROOM 114
+rect: 14, 18, 18, 14
+^text: 114
+^wallwidth:0.125
+
+# ── STRUCTURE NE
+hatch: 18, 18, 26, 14, 45, 1
+
+# ── ROOM 141
+rect: 26, 18, 34, 14
+^text: 141
+^wallwidth:0.125
+
+# ── ROOM 142
+rect: 34, 18, 42, 14
+^text: 142
+^wallwidth:0.125
+
+# ── ROOM 121
+rect: 2, 4.125, 6, 8
+^text: 121
+^wallwidth:0.125
+
+# ── ROOM 122
+rect: 6, 4.125, 10, 8
+^text: 122
+^wallwidth:0.125
+
+# ── ROOM 123
+rect: 10, 4.125, 14, 8
+^text: 123
+^wallwidth:0.125
+
+# ── ROOM 124
+rect: 14, 4.125, 18, 8
+^text: 124
+^wallwidth:0.125
+
+# ── S MEETING ROOM
+rect: 18, 4.125, 24, 8
+^text: MEETING ROOM
+^wallwidth:0.125
+
+# ── E MEETING ROOM
+rect: 41, 14, 45, 8
+^text: MEETING ROOM
+^wallwidth:0.125
+
+# ── ROOM 151R
+rect: 26, 4.125, 29, 8
+^text: REF
+^wallwidth:0.125
+
+# ── ROOM 152R
+rect: 29, 4.125, 31, 8
+^text: UTIL
+^wallwidth:0.125
+
+# ── ROOM 153R
+rect: 31, 4.125, 34, 8
+^text: REF
+^wallwidth:0.125
+
+# ── ROOM 143
+rect: 34, 4.125, 42, 8
+^text: 143
+^wallwidth:0.125
+
+# ── ROOM 143 REFRESHER
+rect: 42, 4.125, 45, 8
+^text: REF
+^wallwidth:0.125
+
+# ── HARBOR TRAFFIC COORDINATION (east, bay side) ──────────────────────
+
+rect: 2, -14, 42, 1.125
+^text: Harbor Traffic Coordination
+door: 34, 1.125, 36, 1.125
+
+door: 9, 1.125, 11, 1.125
+
+# ── STRUCTURE SE
+hatch: 18, -18, 26, -14, 45, 1
+
+# ── STRUCTURE E
+hatch: 45, 4, 42, -4, 45, 1
+
+# ── internal partition marking Records/Liaison from Storage/Coordination boundary
+wall: -2, -14, -2, 14
+
+wall: 2, -14, 2, 14
+
+# ── WEST TOWER (16.5m x 16.5m footprint, ground level) ───────────────
+rect: -29.75, -8.25, -13.25, 8.25
+^opacity: 0.25
+door: -22.5, 8.25, -20.5, 8.25
+^opacity: 0.25
+rect: -20.375, 1.125, -22.625, -1.125
+
+door: -22.5, 1.125, -20.5, 1.125
+
+# ── EAST TOWER (16.5m x 16.5m footprint, ground level) ───────────────
+rect: 13.25, -8.25, 29.75, 8.25
+^opacity: 0.25
+door: 22.5, 8.25, 20.5, 8.25
+^opacity: 0.25
+rect: 20.375, 1.125, 22.625, -1.125
+
+door: 22.5, 1.125, 20.5, 1.125
+
+wall: -15, -18, -15, 18, #ff0000
+^wallwidth: 0.05
+
+wall: 15, -18, 15, 18, #ff0000
+^wallwidth: 0.05
+
+wall: -45, 0, 45, 0, #ff0000
+^wallwidth: 0.05

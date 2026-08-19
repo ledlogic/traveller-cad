@@ -1,0 +1,24 @@
+title: The Pi Building - Ground
+units: m
+world: -50, -20, 50, 20
+grid: 1.5
+wallwidth: 0.3
+wallcolor: #1e4a6e
+
+# ── WEST TOWER (16.5m x 16.5m footprint, ground level) ───────────────
+rect: -29.75, -8.25, -13.25, 8.25
+
+door: -22.5, 8.25, -20.5, 8.25
+
+rect: -20.375, 1.125, -22.625, -1.125
+
+door: -22.5, 1.125, -20.5, 1.125
+
+# ── EAST TOWER (16.5m x 16.5m footprint, ground level) ───────────────
+rect: 13.25, -8.25, 29.75, 8.25
+
+door: 22.5, 8.25, 20.5, 8.25
+
+rect: 20.375, 1.125, 22.625, -1.125
+
+door: 22.5, 1.125, 20.5, 1.125

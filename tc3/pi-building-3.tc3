@@ -1,0 +1,119 @@
+title: The Pi Building - Third
+units: m
+world: -50, -20, 50, 20
+grid: 1.5
+wallwidth: 0.3
+wallcolor: #1e4a6e
+
+# ── THIRD FLOOR
+rect: -45, -18, 45, 18
+
+# ── STRUCTURE NW
+hatch: -18, 18, -26, 14, 45, 1
+
+# ── STRUCTURE W
+hatch: -45, 4, -42, -4, 45, 1
+
+# ── STRUCTURE SW
+hatch: -18, -18, -26, -14, 45, 1
+
+# ── STRUCTURE NE
+hatch: 18, 18, 26, 14, 45, 1
+
+# ── STRUCTURE SE
+hatch: 18, -18, 26, -14, 45, 1
+
+# ── STRUCTURE E
+hatch: 45, 4, 42, -4, 45, 1
+
+# ── CENTRAL CORRIDOR (aligned to elevator lobby doors, matches Fl. 1-2) ─
+rect: -45, 1.125, 45, 4, nobottom
+^text: N Corridor
+rect: -45, -1.125, 45, -4, notop
+^text: S Corridor
+rect: -39, 1.125, 39, -1.125
+
+# ── SYSTEMS & RECORDS (west, plaza side) ───────────────────────────────
+rect: -45, 4, -2, 18
+^text: Systems & Records
+door: -22.5, 4, -20.5, 4
+
+# ── OPERATIONS OVERWATCH (north central, plaza side) ────────────────────
+rect: -2, 4, 22, 18
+^text: Operations Overwatch
+door: 11, 4, 14, 4
+
+# ── COMMS RELAY (northeast, plaza side) ──────────────────────────────────
+rect: 22, 4, 45, 18
+^text: Comms Relay
+door: 28, 4, 31, 4
+
+# ── HARBOR OPERATIONS & DETERRENT CONTROL (full width, bay side) ─────────
+rect: -45, -18, 45, -4
+^text: Harbor Operations & Deterrent Control
+door: -38, -4, -35, -4
+
+door: 38, -4, 35, -4
+
+# ── BAY-FACING DISPLAY WALL ────────────────────────────────────────────
+rect: -37.5, -18, 37.5, -16.5
+^text: DISPLAY
+^wallwidth: 0.15
+
+# ── CONSOLE ROWS (facing the display wall, south-facing) ────────────────
+@component console
+rect: -0.6, -0.4, 0.6, 0.4
+
+rect: -0.5, 0.4, 0.5, 0.55
+@end
+
+place: console, -30, -12, 1, 0
+
+place: console, -24, -12, 1, 0
+
+place: console, -18, -12, 1, 0
+
+place: console, -12, -12, 1, 0
+
+place: console, 12, -12, 1, 0
+
+place: console, 18, -12, 1, 0
+
+place: console, 24, -12, 1, 0
+
+place: console, 30, -12, 1, 0
+
+label: -36, -11.5, -6, -8.5, deterrent buoy stations (dark - unstaffed)
+
+label: 6, -11.5, 36, -8.5, harbor traffic stations
+
+# ── WEST TOWER (structural core ghost) ────────────────────────────────
+rect: -29.75, -8.25, -13.25, 8.25
+^opacity: 0.25
+door: -22.5, 8.25, -20.5, 8.25
+^opacity: 0.25
+rect: -20.375, 1.125, -22.625, -1.125
+^text: Elevator Lobby
+door: -22.5, 1.125, -20.5, 1.125
+
+door: -22.5, -1.125, -20.5, -1.125
+
+# ── EAST TOWER (structural core ghost) ────────────────────────────────
+rect: 13.25, -8.25, 29.75, 8.25
+^opacity: 0.25
+door: 22.5, 8.25, 20.5, 8.25
+^opacity: 0.25
+rect: 20.375, 1.125, 22.625, -1.125
+^text: Elevator Lobby
+door: 22.5, 1.125, 20.5, 1.125
+
+door: 22.5, -1.125, 20.5, -1.125
+
+wall: -15, -18, -15, 18, #ff0000
+^wallwidth: 0.05
+
+wall: 15, -18, 15, 18, #ff0000
+^wallwidth: 0.05
+
+wall: -45, 0, 45, 0, #ff0000
+^wallwidth: 0.05

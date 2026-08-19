@@ -495,14 +495,22 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
       const top2   = Math.min(sy1, sy2), bot2   = Math.max(sy1, sy2);
       // Determine which screen edge maps to which logical side
       // x1<x2 → left=x1, right=x2; y1>y2 (world Y flipped) → top=y1, bottom=y2
+      // top = highest world Y (min screen Y due to flip), bottom = lowest world Y (max screen Y)
+      const highY = Math.max(s.y1, s.y2);
+      const lowY  = Math.min(s.y1, s.y2);
       const leftSup   = s.x1 < s.x2 ? s.noleft   : s.noright;
       const rightSup  = s.x1 < s.x2 ? s.noright  : s.noleft;
-      const topSup    = s.y1 > s.y2 ? s.notop    : s.nobottom;
-      const bottomSup = s.y1 > s.y2 ? s.nobottom : s.notop;
+      const topSup    = s.notop;    // highest world Y = top of map
+      const bottomSup = s.nobottom; // lowest world Y = bottom of map
+      // Recalculate which screen edge is top/bottom based on world Y
+      const [, sHighY] = toScreen(0, highY);
+      const [, sLowY]  = toScreen(0, lowY);
+      const screenTop    = Math.min(sHighY, sLowY); // highest world Y → lowest screen Y
+      const screenBottom = Math.max(sHighY, sLowY);
       if (!leftSup)   { ctx.beginPath(); ctx.moveTo(left2,  top2); ctx.lineTo(left2,  bot2);  ctx.stroke(); }
       if (!rightSup)  { ctx.beginPath(); ctx.moveTo(right2, top2); ctx.lineTo(right2, bot2);  ctx.stroke(); }
-      if (!topSup)    { ctx.beginPath(); ctx.moveTo(left2,  top2); ctx.lineTo(right2, top2);  ctx.stroke(); }
-      if (!bottomSup) { ctx.beginPath(); ctx.moveTo(left2,  bot2); ctx.lineTo(right2, bot2);  ctx.stroke(); }
+      if (!topSup)    { ctx.beginPath(); ctx.moveTo(left2,  screenTop);    ctx.lineTo(right2, screenTop);    ctx.stroke(); }
+      if (!bottomSup) { ctx.beginPath(); ctx.moveTo(left2,  screenBottom); ctx.lineTo(right2, screenBottom); ctx.stroke(); }
     } else {
       shapePath(s, toScreen, scale);
       ctx.stroke();

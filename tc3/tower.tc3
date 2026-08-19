@@ -1,0 +1,64 @@
+title: Station Tower — Level 3
+units: m
+world: -20, -20, 20, 20
+grid: 1.5
+wallwidth: 0.25
+wallcolor: #1e4a3d
+
+# outer hull — octagonal approximation using walls
+rect: -12, -12, 12, 12
+
+# corner cuts
+wall: -12, 8, -8, 12
+wall: 8, 12, 12, 8
+wall: 12, -8, 8, -12
+wall: -8, -12, -12, -8
+
+# central corridor (N-S)
+rect: -3, -12, 3, 12, nowall
+wall: -3, -12, -3, 12
+wall: 3, -12, 3, 12
+
+# central corridor (E-W)
+rect: -12, -3, 12, 3, nowall
+wall: -12, -3, 12, -3
+wall: -12, 3, 12, 3
+
+# NW office block
+rect: -12, 4, -4, 12
+label: -10, 6, -4, 10, Office
+
+# NE office block
+rect: 4, 4, 12, 12
+label: 4, 6, 10, 10, Office
+
+# SE conference room
+rect: 4, -12, 12, -4
+label: 4, -10, 12, -5, Conf
+
+# SW storage
+rect: -12, -12, -4, -4
+label: -12, -10, -4, -5, Storage
+
+# observation deck (N)
+rect: -6, 12, 6, 18
+label: -6, 13.5, 6, 16.5, Obs Deck
+
+# doors
+door: -3, 4, 3, 4
+door: -3, -4, 3, -4
+door: -12, -1.5, -12, 1.5
+door: 12, -1.5, 12, 1.5
+
+# chairs in NW office
+@component chair_rect
+  rect: -0.22, -0.22,  0.22,  0.22
+  rect: -0.22,  0.22,  0.22,  0.32
+  rect: -0.30, -0.10, -0.22,  0.22
+  rect:  0.22, -0.10,  0.30,  0.22
+@end
+
+place: chair_rect, -9, 9, 1, 270
+place: chair_rect, -7, 9, 1, 270
+place: chair_rect, -9, 7, 1, 90
+place: chair_rect, -7, 7, 1, 90

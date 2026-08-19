@@ -1,0 +1,91 @@
+title: The Pi Building - Fourth
+units: m
+world: -50, -20, 50, 20
+grid: 1.5
+wallwidth: 0.3
+wallcolor: #1e4a6e
+
+# ── FOURTH FLOOR
+rect: -45, -18, 45, 18
+
+# ── STRUCTURE NW
+hatch: -18, 18, -26, 14, 45, 1
+
+# ── STRUCTURE W
+hatch: -45, 4, -42, -4, 45, 1
+
+# ── STRUCTURE SW
+hatch: -18, -18, -26, -14, 45, 1
+
+# ── STRUCTURE NE
+hatch: 18, 18, 26, 14, 45, 1
+
+# ── STRUCTURE SE
+hatch: 18, -18, 26, -14, 45, 1
+
+# ── STRUCTURE E
+hatch: 45, 4, 42, -4, 45, 1
+
+# ── CENTRAL CORRIDOR (aligned to elevator lobby doors, matches Fl. 1-2) ─
+rect: -45, 1.125, 45, 4
+^text: Corridor
+
+# ── SECURITY READY ROOM (west, plaza side) ──────────────────────────────
+rect: -45, 4, -2, 18
+^text: Security Ready Room
+door: -22.5, 4, -20.5, 4
+
+# ── ARMORY & LOCKERS (west, bay side) ────────────────────────────────────
+rect: -45, -18, -22, 1.125
+^text: Armory & Lockers
+^locked
+door: -35, 1.125, -32, 1.125
+
+# ── INTERVIEW ROOM (west-center, bay side) ───────────────────────────────
+rect: -22, -18, -2, 1.125
+^text: Interview Room
+door: -13, 1.125, -10, 1.125
+wall: -22, -18, -22, 1.125
+
+# ── ISS LIAISON OFFICE - Vantry's Desk (north central, plaza side) ───────
+rect: -2, 4, 22, 18
+^text: ISS Liaison Office
+door: 11, 4, 14, 4
+
+# ── BRIEFING ROOM (northeast, plaza side) ────────────────────────────────
+rect: 22, 4, 45, 18
+^text: Briefing Room
+door: 28, 4, 31, 4
+
+# ── SURVEILLANCE & COMMS, BAY-FACING (east, bay side) ────────────────────
+rect: -2, -18, 45, 1.125
+^text: Surveillance & Comms (Bay Monitoring)
+door: 18, 1.125, 22, 1.125
+wall: -2, -18, -2, 1.125
+
+# ── WEST TOWER (structural core ghost) ────────────────────────────────
+rect: -29.75, -8.25, -13.25, 8.25
+^opacity: 0.25
+door: -22.5, 8.25, -20.5, 8.25
+^opacity: 0.25
+rect: -20.375, 1.125, -22.625, -1.125
+^text: Elevator Lobby
+door: -22.5, 1.125, -20.5, 1.125
+
+# ── EAST TOWER (structural core ghost) ────────────────────────────────
+rect: 13.25, -8.25, 29.75, 8.25
+^opacity: 0.25
+door: 22.5, 8.25, 20.5, 8.25
+^opacity: 0.25
+rect: 20.375, 1.125, 22.625, -1.125
+^text: Elevator Lobby
+door: 22.5, 1.125, 20.5, 1.125
+
+wall: -15, -18, -15, 18, #ff0000
+^wallwidth: 0.05
+
+wall: 15, -18, 15, 18, #ff0000
+^wallwidth: 0.05
+
+wall: -45, 0, 45, 0, #ff0000
+^wallwidth: 0.05

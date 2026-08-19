@@ -1,0 +1,357 @@
+title: Eol10 All That Glitters — Venue
+units: m
+world: -60, -40, 60, 45
+grid: 1.5
+wallwidth: 0.3
+wallcolor: #1e4a6e
+
+# ── MAIN BALLROOM (80×50m) ─────────────────────────────────────────
+rect: -40, -25, 40, 25
+^text: Main Ballroom
+
+# ── RUNWAY / STAGE (30×15m, north) ────────────────────────────────
+rect: -15, 40, 15, 25
+
+rect: -15, 35, 10, 30
+^elev: +1.5m
+^text: Runway / Stage
+
+stairs: -11,36,0, -10,36,0, -10,35,1.5, -11,35,1.5
+^wallwidth:0.05
+stairs: 7,36,0, 8,36,0, 8,35,1.5, 7,35,1.5
+^wallwidth:0.05
+stairs: -11,29,0, -10,29,0, -10,30,1.5, -11,30,1.5
+^wallwidth:0.05
+stairs: 7,29,0, 8,29,0, 8,30,1.5, 7,30,1.5
+^wallwidth:0.05
+
+# ── MORPH STAGING (12×8m, behind runway) ──────────────────────────
+rect: -23, 38.5, -15, 26.5
+^text: Morph Staging
+^elev: +1.5m
+^icon: eye
+
+door: -23, 30, -23, 28
+^locked
+^icon: eye
+door: -15, 30, -15, 35
+^text: curtain
+^rotate-text:90
+
+door: -7.5, 25, -10.5, 25
+
+door: 7.5, 25, 10.5, 25
+
+# ── FOYER / ANTECHAMBER (20×12m, south) ───────────────────────────
+rect: -10, -25, 10, -37
+^text: Foyer / Antechamber
+door: -10, -32, -10, -34
+^locked
+
+door: -8, -25, -4, -25
+
+door: -2, -25, 2, -25
+
+door: 4, -25, 8, -25
+
+# ── COCKTAIL ALCOVE ────────────────────────────────────────────────
+rect: -55, 20, -40, -16
+
+# ── WEST ARCH ─────────────────────────────────────────────────────
+rect: -40, 25, -38, -25
+^text: West Arch
+^opacity: 0.25
+^rotate-text: 90
+
+# ── NORTH ARCH ─────────────────────────────────────────────────────
+rect: -40, 25, 40, 23
+^text: North Arch
+^opacity: 0.25
+
+# ── EAST ARCH ─────────────────────────────────────────────────────
+rect: 40, 25, 38, -25
+^text: East Arch
+^opacity: 0.25
+^rotate-text: 90
+
+# ── SOUTH ARCH ─────────────────────────────────────────────────────
+rect: -40, -25, 40, -23
+^text: South Arch
+^opacity: 0.25
+
+# ── COCKTAIL LOUNGES ×3 (west, each) ──────────────────────────────
+rect: -48, 20, -40, 12
+^text: Cocktail Lounge 1
+^elev: 1.5
+door: -48, 17, -48, 15
+
+rect: -48, 8, -40, 0
+^text: Cocktail Lounge 2
+^elev: 1.5
+door: -48, 5, -48, 3
+
+rect: -48, -4, -40, -12
+^text: Cocktail Lounge 3
+^elev: 1.5
+door: -48, -7, -48, -9
+
+# ── WEST CORRIDOR ─────────────────────────────────────────────────
+rect: -50, 22, -48, -16
+^elev: 1.5
+^text: W Guest Corridor
+^rotate-text: 90
+
+# ── PRIVATE CHAT ROOMS ×4 (west corridor) ─────────────────────────
+rect: -55, 20, -50, 16
+^text: Chat 1
+^elev: 1.5
+door: -50, 19, -50, 17
+
+rect: -55, 12, -50, 8
+^text: Chat 2
+^elev: 1.5
+door: -50, 11, -50, 9
+
+rect: -55, 0, -50, -4
+^text: Chat 3
+^elev: 1.5
+door: -50, -1, -50, -3
+
+rect: -55, -16, -50, -12
+^text: Chat 4
+^elev: 1.5
+door: -50, -15, -50, -13
+
+# ── STAIRWAY
+stairs: -48,-13,+1.5, -40, -13, 0, -40, -16, 0, -48, -16, +1.5
+
+# ── VR POD ALCOVE (east) ──────────────────────────────────────────
+rect: 40, -5, 48, -20
+^text: VR Pod Alcove
+^rotate-text: 90
+
+rect: 45, -6.418, 47.2, -7.318
+^text: Pod 1
+^wallwidth: 0.05
+
+rect: 45, -8.027, 47.2, -8.927
+^text: Pod 2
+^wallwidth: 0.05
+
+rect: 45, -9.636, 47.2, -10.536
+^text: Pod 3
+^wallwidth: 0.05
+
+rect: 45, -11.245, 47.2, -12.145
+^text: Pod 4
+^wallwidth: 0.05
+
+rect: 45, -12.855, 47.2, -13.755
+^text: Pod 5
+^wallwidth: 0.05
+
+rect: 45, -14.464, 47.2, -15.364
+^text: Pod 6
+^wallwidth: 0.05
+
+rect: 45, -16.073, 47.2, -16.973
+^text: Pod 7
+^wallwidth: 0.05
+
+rect: 45, -17.682, 47.2, -18.582
+^text: Pod 8
+^wallwidth: 0.05
+
+# ── CATERING & FABBER BAR ─────────────────────────────────────────
+rect: -55, -19, -40, -25
+stairs: -50,-16,+1.5, -48, -16, +1.5, -48, -19, 0, -50, -19, 0
+^nowall
+
+wall: -48, -19, -48, -25
+
+door: -48, -22.5, -48, -24.5
+
+door: -48, -20.5, -48, -22.5
+
+door: 12, -25, 14, -25
+^locked
+
+door: 35, -25, 37, -25
+^locked
+
+door: -55, -20.5, -55, -23.5
+^locked
+
+door: -40, -19, -40, -25
+^text: Counter
+^rotate-text: 90
+
+rect: -53.5, -24, -49.5, -25
+^wallwidth: 0.05
+^text: 2 Fabbers
+
+# ── REFRESHER SUITES ×2 (south-west) ──────────────────────────────
+
+rect: -30, -32, -22, -25
+^text: Refresher 1
+door: -30, -25, -28, -25
+
+door: -30, -32, -28, -32
+^locked
+
+rect: -21, -32, -13, -25
+^text: Refresher 2
+door: -15, -25, -13, -25
+
+door: -15, -32, -13, -32
+^locked
+
+# ── SECURITY HUB (east, staff only) ───────────────────────────────
+wallcolor: #0d2d45
+rect: -55, 28, -45, 22
+^wallcolor: #0d2d45
+^text: Security Hub
+^icon: eye
+
+door: -55, 26, -55, 24
+^locked
+^icon: eye
+
+door: -50, 22, -48, 22
+^locked
+
+# ── OBSERVATION TERRACE (upper level, shown separately) ───────────
+rect: 32, 12.5, 40, -2.5
+^text: Observation Terrace
+^opacity:0.25
+^rotate-text: 90
+
+# ── OBSERVATION TERRACE (upper level, shown separately) ───────────
+rect: 47, 12.5, 55, -2.5
+^text: Observation Terrace
+^rotate-text: 90
+^elev: +20
+
+# ── LIFT, GROUND
+
+oval: 40, 6, 42, 4
+^text: lift
+
+door: 40, 6, 40, 4
+^locked
+
+# ── LIFT, TERRACE
+
+oval: 55, 6, 57, 4
+^text: lift
+^elev: 5
+door: 55, 6, 55, 4
+^elev: 5
+
+# ── SECURITY CORRIDOR ──────────────────────────────────────────────
+wallcolor: #0d2d45
+
+# North corridor 1 — runs east from runway to east wall
+rect: 15, 40, 43, 38
+^icon: eye
+
+# North corridor 2 — runs east from runway to east wall
+rect: 15, 27, 43, 25
+^icon: eye
+
+# North corridor 3 — runs east from runway to east wall
+rect: 40, 18, 43, 16
+^icon: eye
+
+# Lift corridor
+rect: 42, 6, 43, 4
+^icon: eye
+
+door: 42, 6, 42, 4
+^locked
+^icon: eye
+
+# Access from north corridor into ballroom (through north arch area)
+door: 15, 27, 15, 25
+^locked
+
+door: 43, 27, 43, 25
+^icon: eye
+
+door: 16.5, 25, 18.5, 25
+^locked
+
+door: 26.5, 25, 28.5, 25
+^locked
+
+# Access from runway — locked door on east end of runway area
+door: 15, 40, 15, 38
+^locked
+
+# East corridor — runs south from north corridor to VR alcove
+rect: 43, 40, 45, -5
+^rotate-text: 90
+^icon: eye
+
+door: 43, 40, 43, 38
+^icon: eye
+
+# Access from east corridor into ballroom (through east arch)
+door: 40, 18, 40, 16
+^locked
+
+door: 40, -2, 40, -5
+^locked
+
+# Access into VR alcove from east corridor
+door: 43, -5, 45, -5
+^locked
+
+# ── STAFF CORRIDORS (grey, nowall) ────────────────────────────────
+wallcolor: #2a5f7a
+
+# ── Northwest
+rect: -55, 30, -23, 28
+^text: NW Staff Corridor
+^icon: eye
+door: -55, 30, -55, 28
+^icon: eye
+
+# ── West
+rect: -57, 30, -55, -34
+^text: W Staff Corridor
+^rotate-text: 90
+^icon: eye
+
+# ── Southwest
+rect: -55, -32, -10, -34
+^text: SW Staff Corridor
+^icon: eye
+door: -55, -32, -55, -34
+^icon: eye
+
+stairs: -57,-16,+1.5, -55, -16, +1.5, -55, -19, 0, -57, -19, 0
+^icon: eye
+
+# ── East
+rect: 10 -30, 50, -34
+^text: Guest Corridor to Profunda Hab
+door: 10, -30, 10, -34
+
+rect: 10 -25, 43, -27
+^icon: eye
+door: 10, -25, 10, -27
+^locked
+
+door: 43, -25, 43, -27
+^icon: eye
+
+# East corridor
+rect: 43, -20, 45, -30
+^icon: eye
+
+door: 43, -20, 45, -20
+^locked
+
+door: 43, -30, 45, -30
+^locked

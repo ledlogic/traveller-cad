@@ -1,0 +1,44 @@
+title: Hatch Fill Demo
+units: m
+world: -30, -20, 30, 20
+grid: 1.5
+wallwidth: 0.25
+wallcolor: #1e4a6e
+
+# ── STRUCTURAL WALL (dense 45° hatch) ──────────────────────────────
+hatch: -28, 18, -20, -18, 45, 0.4
+^text: Structural Wall
+
+# ── RESTRICTED ZONE (tight crosshatch) ─────────────────────────────
+hatch: -18, 8, -8, -8, 45, 0.6
+hatch: -18, 8, -8, -8, -45, 0.6
+rect: -18, 8, -8, -8, nowall
+^text: Restricted Zone
+^icon: restricted
+
+# ── LOAD-BEARING COLUMN (small dense crosshatch) ───────────────────
+hatch: -4, 4, 0, 0, 45, 0.3
+hatch: -4, 4, 0, 0, -45, 0.3
+^text: Column
+
+# ── MAIN ROOM ────────────────────────────────────────────────────
+rect: 2, 12, 28, -12
+^text: Main Space
+
+door: 2, 4, 2, 2
+
+# ── SOLID PARTITION (coarse -45°) ──────────────────────────────────
+hatch: 10, 12, 12, -12, -45, 0.8
+^text: Partition
+
+# ── STORAGE (medium 45°) ───────────────────────────────────────────
+rect: 14, 12, 28, 4
+^text: Storage
+hatch: 14, 12, 28, 4, 45, 0.5
+^nowall
+
+# ── HAB CORRIDOR (exterior wall fill) ──────────────────────────────
+hatch: -28, -10, 28, -18, 45, 0.5
+^text: Hab Wall
+
+label: -10, 16, 10, 18, hatch demo

@@ -1,6 +1,0 @@
-{
-  "id": "hatch-demo",
-  "title": "Hatch Fill Demo",
-  "description": "Demonstrates hatch: command for solid walls, structural zones, and restricted areas.",
-  "script": "title: Hatch Fill Demo\nunits: m\nworld: -30, -20, 30, 20\ngrid: 1.5\nwallwidth: 0.25\nwallcolor: #1e4a6e\n\n# ── STRUCTURAL WALL (dense 45° hatch) ──────────────────────────────\nhatch: -28, 18, -20, -18, 45, 0.4\n^text: Structural Wall\n\n# ── RESTRICTED ZONE (tight crosshatch) ─────────────────────────────\nhatch: -18, 8, -8, -8, 45, 0.6\nhatch: -18, 8, -8, -8, -45, 0.6\nrect: -18, 8, -8, -8, nowall\n^text: Restricted Zone\n^icon: restricted\n\n# ── LOAD-BEARING COLUMN (small dense crosshatch) ───────────────────\nhatch: -4, 4, 0, 0, 45, 0.3\nhatch: -4, 4, 0, 0, -45, 0.3\n^text: Column\n\n# ── MAIN ROOM ────────────────────────────────────────────────────\nrect: 2, 12, 28, -12\n^text: Main Space\n\ndoor: 2, 4, 2, 2\n\n# ── SOLID PARTITION (coarse -45°) ──────────────────────────────────\nhatch: 10, 12, 12, -12, -45, 0.8\n^text: Partition\n\n# ── STORAGE (medium 45°) ───────────────────────────────────────────\nrect: 14, 12, 28, 4\n^text: Storage\nhatch: 14, 12, 28, 4, 45, 0.5\n^nowall\n\n# ── HAB CORRIDOR (exterior wall fill) ──────────────────────────────\nhatch: -28, -10, 28, -18, 45, 0.5\n^text: Hab Wall\n\nlabel: -10, 16, 10, 18, hatch demo\n"
-}

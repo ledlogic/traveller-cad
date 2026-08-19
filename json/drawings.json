@@ -2,61 +2,61 @@
   "drawings": [
     {
       "id": "submarine",
-      "file": "json/submarine.json",
+      "file": "tc3/submarine.tc3",
       "title": "Instellarms 'Shield' Submarine — Deck Plan",
       "description": "Pressure hull with bow and stern domes, bulkhead door, and crew chairs."
     },
     {
       "id": "tower",
-      "file": "json/tower.json",
+      "file": "tc3/tower.tc3",
       "title": "Station Tower — Level 3",
       "description": "Modular space station tower level — offices, conference room, observation deck."
     },
     {
       "id": "venue",
-      "file": "json/venue.json",
+      "file": "tc3/venue.tc3",
       "title": "Venue",
       "description": "Session 10 — All That Glitters venue map. Profunda Beehive, Enceladus."
     },
     {
       "id": "hatch-demo",
-      "file": "json/hatch-demo.json",
+      "file": "tc3/hatch-demo.tc3",
       "title": "Hatch Fill Demo",
       "description": "Demonstrates hatch: command — solid walls, restricted zones, crosshatch, partitions."
     },
     {
       "id": "pi-building-0",
-      "file": "json/pi-building-0.json",
+      "file": "tc3/pi-building-0.tc3",
       "title": "The Pi Building - Ground",
       "description": ""
     },
     {
       "id": "pi-building-1",
-      "file": "json/pi-building-1.json",
+      "file": "tc3/pi-building-1.tc3",
       "title": "The Pi Building - First",
       "description": ""
     },
     {
       "id": "pi-building-2",
-      "file": "json/pi-building-2.json",
+      "file": "tc3/pi-building-2.tc3",
       "title": "The Pi Building - Second",
       "description": "General staff offices and meeting rooms. Low-priority floor for a fast team pass-through."
     },
     {
       "id": "pi-building-3",
-      "file": "json/pi-building-3.json",
+      "file": "tc3/pi-building-3.tc3",
       "title": "The Pi Building - Third",
       "description": "Harbor Operations & Deterrent Control. The bay-facing display wall runs the full south face. This is where the sonic deterrent buoy controls live (Appendix G) -- and where the team can see on the display that the system is dark."
     },
     {
       "id": "pi-building-4",
-      "file": "json/pi-building-4.json",
+      "file": "tc3/pi-building-4.tc3",
       "title": "The Pi Building - Fourth",
       "description": "Security ready room, armory, ISS liaison office, and bay-facing surveillance/comms room. Light garrison presence, not the main defense."
     },
     {
       "id": "pi-building-5",
-      "file": "json/pi-building-5.json",
+      "file": "tc3/pi-building-5.tc3",
       "title": "The Pi Building - Fifth",
       "description": "Governor Krein's barricade command post. His hardened comm suite and authorization codex vault (Appendix A) are here. Bay-side observation gallery gives the top floor its view."
     }
