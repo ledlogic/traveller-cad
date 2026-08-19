@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.29
+- **Current version:** v1.37
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,14 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.37 | 2026-08-19 | `in` toolbar button toggles ruler and HUD between metres and inches (1.5m = 1in); button shows current unit |
+| v1.36 | 2026-08-19 | drawings.json updated with Pi Building floors 0-5; all pi-building json files added |
+| v1.35 | 2026-08-19 | Cache-busting `?v=1.35` on all script tags; confirmed `^wallwidth:` and `^opacity:` work correctly on walls via parser test |
+| v1.34 | 2026-08-19 | `drawWall` minimum lineWidth uses `0.5/dpr` to properly respect DPI scaling |
+| v1.33 | 2026-08-10 | Wall minimum lineWidth lowered to 0.1px so `^wallwidth:` thin values render closer to true width |
+| v1.32 | 2026-08-10 | `wall:` now honours `^opacity:`; minimum line width lowered to 0.3px |
+| v1.31 | 2026-08-10 | Fixed `^wallwidth:` not working on `wall:` — was reading wrong field and clamping to 2.5px minimum |
+| v1.30 | 2026-08-10 | `hatch:` now honours `^wallwidth:` for the outer frame thickness |
 | v1.29 | 2026-07-28 | `door:` now honours `^opacity:` — applies globalAlpha to entire door rendering including wall line, panel, and padlock |
 | v1.28 | 2026-07-28 | venue.json updated; hatch-demo.json added to drawings — demonstrates 45/-45° hatch, crosshatch, restricted zones, partitions |
 | v1.27 | 2026-07-28 | PNG export honours Staff toggle — staff corridors hidden in export when toggle is off |

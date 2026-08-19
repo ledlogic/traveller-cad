@@ -49,6 +49,14 @@ el.btnStaff.addEventListener('click', () => {
   renderCanvas();
 });
 
+el.btnInches.addEventListener('click', () => {
+  showInches = !showInches;
+  el.btnInches.classList.toggle('active', showInches);
+  el.btnInches.textContent = showInches ? 'm' : 'in';
+  el.btnInches.title = showInches ? 'Switch to metres' : 'Switch to inches (1.5m = 1in)';
+  renderCanvas();
+});
+
 /* ============================= zoom ============================= */
 const ZOOM_STEP = 1.25;
 const ZOOM_MIN  = 0.1;
@@ -392,7 +400,11 @@ el.canvas.addEventListener('mousemove', (e) => {
 
   // Coords — fixed width, never grows
   el.hud.style.display = '';
-  el.hud.innerHTML = `x <b>${fmt(hoverWx)}</b> · y <b>${fmt(hoverWy)}</b>`;
+  if (showInches){
+    el.hud.innerHTML = `x <b>${fmt(hoverWx/1.5)}"</b> · y <b>${fmt(hoverWy/1.5)}"</b>`;
+  } else {
+    el.hud.innerHTML = `x <b>${fmt(hoverWx)}</b> · y <b>${fmt(hoverWy)}</b>`;
+  }
 
   // Selection info — separate upper-right element
   updateInfoBar();

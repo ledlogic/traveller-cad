@@ -3,62 +3,62 @@
     {
       "id": "submarine",
       "file": "json/submarine.json",
-      "title": "Instellarms 'Shield' Submarine \u2014 Deck Plan",
+      "title": "Instellarms 'Shield' Submarine — Deck Plan",
       "description": "Pressure hull with bow and stern domes, bulkhead door, and crew chairs."
     },
     {
       "id": "tower",
       "file": "json/tower.json",
-      "title": "Station Tower \u2014 Level 3",
-      "description": "Modular space station tower level \u2014 offices, conference room, observation deck."
+      "title": "Station Tower — Level 3",
+      "description": "Modular space station tower level — offices, conference room, observation deck."
     },
     {
       "id": "venue",
       "file": "json/venue.json",
       "title": "Venue",
-      "description": "Session 10 \u2014 All That Glitters venue map. Profunda Beehive, Enceladus."
+      "description": "Session 10 — All That Glitters venue map. Profunda Beehive, Enceladus."
     },
     {
       "id": "hatch-demo",
       "file": "json/hatch-demo.json",
       "title": "Hatch Fill Demo",
-      "description": "Demonstrates hatch: command \u2014 solid walls, restricted zones, crosshatch, partitions."
+      "description": "Demonstrates hatch: command — solid walls, restricted zones, crosshatch, partitions."
     },
     {
       "id": "pi-building-0",
       "file": "json/pi-building-0.json",
       "title": "The Pi Building - Ground",
-      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+      "description": ""
     },
     {
       "id": "pi-building-1",
       "file": "json/pi-building-1.json",
       "title": "The Pi Building - First",
-      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+      "description": ""
     },
     {
       "id": "pi-building-2",
       "file": "json/pi-building-2.json",
       "title": "The Pi Building - Second",
-      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+      "description": "General staff offices and meeting rooms. Low-priority floor for a fast team pass-through."
     },
     {
       "id": "pi-building-3",
       "file": "json/pi-building-3.json",
       "title": "The Pi Building - Third",
-      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+      "description": "Harbor Operations & Deterrent Control. The bay-facing display wall runs the full south face. This is where the sonic deterrent buoy controls live (Appendix G) -- and where the team can see on the display that the system is dark."
     },
     {
       "id": "pi-building-4",
       "file": "json/pi-building-4.json",
       "title": "The Pi Building - Fourth",
-      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+      "description": "Security ready room, armory, ISS liaison office, and bay-facing surveillance/comms room. Light garrison presence, not the main defense."
     },
     {
       "id": "pi-building-5",
       "file": "json/pi-building-5.json",
       "title": "The Pi Building - Fifth",
-      "description": "Naval administration tower, Meridian Boulevard, Ys. Two support legs (16.5m x 40m each) carrying a 102m x 12m cantilevered upper block, overhanging 16.5m past each leg."
+      "description": "Governor Krein's barricade command post. His hardened comm suite and authorization codex vault (Appendix A) are here. Bay-side observation gallery gives the top floor its view."
     }
   ]
 }

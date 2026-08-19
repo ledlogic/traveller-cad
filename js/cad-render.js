@@ -330,7 +330,8 @@ function drawRulers(toScreen, x1, y1, x2, y2, scale, offsetX, offsetY, drawW, dr
     ctx.moveTo(sx, offsetY - 6);
     ctx.lineTo(sx, offsetY);
     ctx.stroke();
-    ctx.fillText(fmt(gx), sx, offsetY - 10);
+    const lxLabel = showInches ? fmt(gx / 1.5) + '"' : fmt(gx);
+    ctx.fillText(lxLabel, sx, offsetY - 10);
   }
   // left ruler
   ctx.textAlign = 'right';
@@ -342,7 +343,8 @@ function drawRulers(toScreen, x1, y1, x2, y2, scale, offsetX, offsetY, drawW, dr
     ctx.moveTo(offsetX - 6, sy);
     ctx.lineTo(offsetX, sy);
     ctx.stroke();
-    ctx.fillText(fmt(gy), offsetX - 10, sy);
+    const lyLabel = showInches ? fmt(gy / 1.5) + '"' : fmt(gy);
+    ctx.fillText(lyLabel, offsetX - 10, sy);
   }
   ctx.restore();
 }
@@ -532,11 +534,14 @@ function drawGrid(s, toScreen, gridSize){
 function drawWall(s, toScreen, scale, defaultWidth, docWallColor){
   const [sx1, sy1] = toScreen(s.x1, s.y1);
   const [sx2, sy2] = toScreen(s.x2, s.y2);
-  const width = s.width || defaultWidth;
+  const width = s.wallWidth !== undefined ? s.wallWidth : (s.width || defaultWidth);
   const color = s.color || docWallColor || WALL_COLOR;
+  const dpr = window.devicePixelRatio || 1;
+  const lw = Math.max(0.5 / dpr, width * scale);
   ctx.save();
+  if (s.opacity !== undefined) ctx.globalAlpha = s.opacity;
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2.5, width * scale);
+  ctx.lineWidth = lw;
   ctx.lineCap = 'square';
   ctx.beginPath();
   ctx.moveTo(sx1, sy1);
@@ -756,7 +761,8 @@ function drawStairs(s, toScreen, scale, wallWidth, docWallColor){
 
 function drawHatch(s, toScreen, scale, wallWidth, docWallColor){
   const color = s.color || docWallColor || WALL_COLOR;
-  const lw = Math.max(0.6, Math.min(1.5, scale * 0.012)); // thin lines
+  const lw = Math.max(0.6, Math.min(1.5, scale * 0.012));
+  const frameLw = Math.max(0.5, (s.wallWidth !== undefined ? s.wallWidth : wallWidth) * scale); // thin lines
   const spacing = Math.max(0.01, s.spacing || 0.5);
   const angleDeg = s.angle || 45;
   const angleRad = angleDeg * Math.PI / 180;
@@ -807,7 +813,7 @@ function drawHatch(s, toScreen, scale, wallWidth, docWallColor){
   ctx.restore();
   ctx.save();
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1.5, wallWidth * scale);
+  ctx.lineWidth = frameLw;
   ctx.lineCap = 'square';
   ctx.strokeRect(left, top, w, h);
   ctx.restore();
