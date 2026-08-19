@@ -24,8 +24,6 @@ const el = {
   log: document.getElementById('log'),
   statusDot: document.getElementById('statusDot'),
   titleDisplay: document.getElementById('titleDisplay'),
-  createdDisplay: document.getElementById('createdDisplay'),
-  modifiedDisplay: document.getElementById('modifiedDisplay'),
   worldStatus: document.getElementById('worldStatus'),
   scaleStatus: document.getElementById('scaleStatus'),
   hud: document.getElementById('hud'),

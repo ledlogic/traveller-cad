@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.42
+- **Current version:** v1.44
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,8 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.44 | 2026-08-19 | Removed created/revised date display from toolbar |
+| v1.43 | 2026-08-19 | Save button renamed from "Save JSON" to "Save TC3" |
 | v1.42 | 2026-08-19 | Fixed `notop`/`nobottom` on rect — `notop` now correctly suppresses the highest world-Y edge, `nobottom` the lowest |
 | v1.41 | 2026-08-19 | Migrated from JSON to `.tc3` plain-text script files; drawings.json updated; Save writes `.tc3`; Load accepts `.tc3` |
 | v1.40 | 2026-08-19 | Structural hatch blocks copied to floors 3, 4, and 5 |

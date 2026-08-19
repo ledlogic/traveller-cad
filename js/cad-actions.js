@@ -510,8 +510,6 @@ el.fileInput.addEventListener('change', (e) => {
       selectedIndices = new Set();
       syncGutter();
       runScript();
-      el.createdDisplay.textContent  = fmtDate(docMeta.created);
-      el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
     }catch(err){
       el.statusDot.classList.add('err');
       el.log.innerHTML = `<div class="err-line"><b>load failed:</b> ${escapeHtml(err.message)}</div>`;
@@ -525,7 +523,6 @@ el.btnSave.addEventListener('click', () => {
   clearTimeout(debounceTimer);
   runScript();
   docMeta.modified = new Date();
-  el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
   const title = currentDoc ? currentDoc.title : '';
   // Save as plain .tc3 — raw script text only
   const blob = new Blob([el.script.value], { type: 'text/plain' });

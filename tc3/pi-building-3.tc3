@@ -83,9 +83,9 @@ place: console, 24, -12, 1, 0
 
 place: console, 30, -12, 1, 0
 
-label: -36, -11.5, -6, -8.5, deterrent buoy stations (dark - unstaffed)
+label: -36, -11.5, -6, -9.5, deterrent buoy stations (dark - unstaffed)
 
-label: 6, -11.5, 36, -8.5, harbor traffic stations
+label: 6, -11.5, 36, -9.5, harbor traffic stations
 
 # ── WEST TOWER (structural core ghost) ────────────────────────────────
 rect: -29.75, -8.25, -13.25, 8.25
