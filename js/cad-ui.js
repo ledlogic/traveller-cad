@@ -82,8 +82,6 @@ function runScript(){
   el.titleDisplay.textContent = doc.title || 'Untitled Drawing';
   docMeta.modified = new Date();
   if (!docMeta.created) docMeta.created = docMeta.modified;
-  el.createdDisplay.textContent = fmtDate(docMeta.created);
-  el.modifiedDisplay.textContent = fmtDate(docMeta.modified);
 
   // log
   if (errors.length){
