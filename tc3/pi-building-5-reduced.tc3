@@ -1,0 +1,74 @@
+title: The Pi Building - Fifth (SQUISHED, seam at x=0, 4-panel print layout)
+units: m
+world: -40, -24, 40, 24
+grid: 1.5
+wallwidth: 0.3
+wallcolor: #1e4a6e
+
+# ── FIFTH FLOOR (60m x 36m -- exact match for 4 panels @ 20x12in x 1.5m/in,
+# zero overhang. Towers centered at x=-15/+15, y=0; 13.5m gap between them,
+# seam at x=0 sits symmetrically 6.75m from each tower.)
+rect: -30, -18, 30, 18
+
+# ── CENTRAL CORRIDOR ─
+rect: -30, 1.125, 30, 4
+^text: Corridor
+
+# ── STAFF BARRICADE POSITION (west, plaza side) ──────────────────────────
+rect: -30, 4, -10, 18
+^text: Staff Barricade Position
+door: -20, 4, -18, 4
+
+# ── KREIN'S COMMAND POST (center, over the tower gap, plaza side) ────────
+rect: -10, 4, 10, 18
+^text: Krein's Command Post
+door: -10, 4, -8, 4
+
+door: 8, 4, 10, 4
+
+door: -1, 4, 1, 4
+
+# ── GOVERNOR'S OFFICE & COMM SUITE (east, plaza side) ─────────────────────
+rect: 10, 4, 30, 18
+^text: Governor's Office & Comm Suite
+door: 18, 4, 20, 4
+
+# ── OBSERVATION GALLERY, BAY VIEW (west + center, bay side) ───────────────
+rect: -30, -18, 10, 1.125
+^text: Observation Gallery (Bay View)
+door: -20, 1.125, -18, 1.125
+
+# ── AUTHORIZATION CODEX VAULT (east, bay side, locked) ─────────────────────
+rect: 10, -18, 30, 1.125
+^text: Authorization Codex Vault
+^locked
+door: 10, -5, 10, -2
+^locked
+wall: 10, -18, 10, 1.125
+
+# ── WEST TOWER (centered at x=-15, y=0) ───────────────────────────────────
+rect: -23.25, -8.25, -6.75, 8.25
+^opacity: 0.25
+door: -16, 8.25, -14, 8.25
+^opacity: 0.25
+rect: -16.125, 1.125, -13.875, -1.125
+^text: Elevator Lobby
+door: -16, 1.125, -14, 1.125
+
+# ── EAST TOWER (centered at x=+15, y=0) ───────────────────────────────────
+rect: 6.75, -8.25, 23.25, 8.25
+^opacity: 0.25
+door: 14, 8.25, 16, 8.25
+^opacity: 0.25
+rect: 13.875, 1.125, 16.125, -1.125
+^text: Elevator Lobby
+door: 14, 1.125, 16, 1.125
+
+# ── PRINT PANEL SEAMS: single vertical (x=0, centered in the tower gap) +
+# single horizontal (y=0). Both symmetric, zero overhang against a 4-panel
+# 20x12in grid.
+wall: 0, -18, 0, 18, #ff0000
+^wallwidth: 0.05
+
+wall: -30, 0, 30, 0, #ff0000
+^wallwidth: 0.05
