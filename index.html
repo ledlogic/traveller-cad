@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Starship CAD</title>
-<link rel="stylesheet" href="css/cad.css?v=204">
+<link rel="stylesheet" href="css/cad.css?v=205">
 <link href="https://fonts.cdnfonts.com/css/univers" rel="stylesheet">
 </head>
 <body>
@@ -64,34 +64,34 @@
       <details class="reference">
         <summary>Command Reference</summary>
         <div class="reference-body">
-          <span class="ex"><code>title: Deck 3 — Cargo Bay</code><br>Sets the drawing title (shown above, Optima).</span>
-          <span class="ex"><code>units: m</code><br>Label for the working unit. Cosmetic only — all coordinates are already in this unit.</span>
-          <span class="ex"><code>world: x1, y1, x2, y2</code><br>Defines the real-world bounding box shown on the drafting surface.</span>
-          <span class="ex"><code>grid: 1.5</code><br>Optional. Spacing of the structure grid, default 1.5.</span>
-          <span class="ex"><code>wallwidth: 0.2</code><br>Optional. Default wall/outline thickness, default 0.2.</span>
-          <span class="ex"><code>featurethickness: 0.1</code><br>Optional. Line thickness used for feature details like door panel outlines, default 0.1 m.</span>
-          <span class="ex"><code>wallcolor: #22574A</code><br>Optional. Sets the wall/outline/label colour for all shapes that follow. Use 3- or 6-digit hex. Per-shape override: append <code>#hex</code> at the end of any <code>rect</code>, <code>oval</code>, <code>semicircle</code>, or <code>wall</code> line.</span>
+          <span class="ex"><code>title Deck 3 — Cargo Bay</code><br>Sets the drawing title (shown above, Optima).</span>
+          <span class="ex"><code>units m</code><br>Label for the working unit. Cosmetic only — all coordinates are already in this unit.</span>
+          <span class="ex"><code>world x1, y1, x2, y2</code><br>Defines the real-world bounding box shown on the drafting surface.</span>
+          <span class="ex"><code>grid 1.5</code><br>Optional. Spacing of the structure grid, default 1.5.</span>
+          <span class="ex"><code>wallwidth 0.2</code><br>Optional. Default wall/outline thickness, default 0.2.</span>
+          <span class="ex"><code>featurethickness 0.1</code><br>Optional. Line thickness used for feature details like door panel outlines, default 0.1 m.</span>
+          <span class="ex"><code>wallcolor #22574A</code><br>Optional. Sets the wall/outline/label colour for all shapes that follow. Use 3- or 6-digit hex. Per-shape override: append <code>#hex</code> at the end of any <code>rect</code>, <code>oval</code>, <code>semicircle</code>, or <code>wall</code> line.</span>
           <span class="ex"><strong>Colons are optional</strong> everywhere: <code>rect -18 3 -10.5 -3</code> and <code>^text Bridge</code> work the same as <code>rect: -18, 3, -10.5, -3</code> and <code>^text: Bridge</code>. Commas between numbers are optional too.</span>
-          <span class="ex"><code>rect: x1, y1, x2, y2</code><br>Draws a rectangular structure — white fill, gridded, outlined.</span>
-          <span class="ex"><code>oval: x1, y1, x2, y2</code><br>Draws an elliptical structure inside the given bounding box.</span>
-          <span class="ex"><code>semicircle: x1, y1, x2, y2, direction [flags]</code><br>Half-ellipse structure. Direction is which side the <em>flat edge</em> faces: <code>left</code> <code>right</code> <code>top</code> <code>bottom</code>. Optional flags: <code>noflatwall</code> suppresses the closing straight edge; <code>noleftwall</code> <code>norightwall</code> <code>notopwall</code> <code>nobottomwall</code> suppress individual sides; <code>nowall</code> suppresses all outlines.</span>
+          <span class="ex"><code>rect x1, y1, x2, y2</code><br>Draws a rectangular structure — white fill, gridded, outlined.</span>
+          <span class="ex"><code>oval x1, y1, x2, y2</code><br>Draws an elliptical structure inside the given bounding box.</span>
+          <span class="ex"><code>semicircle x1, y1, x2, y2, direction [flags]</code><br>Half-ellipse structure. Direction is which side the <em>flat edge</em> faces: <code>left</code> <code>right</code> <code>top</code> <code>bottom</code>. Optional flags: <code>noflatwall</code> suppresses the closing straight edge; <code>noleftwall</code> <code>norightwall</code> <code>notopwall</code> <code>nobottomwall</code> suppress individual sides; <code>nowall</code> suppresses all outlines.</span>
           <span class="ex"><code>polyroom</code> … <code>endpolyroom</code><br>Fills a room of any shape. Put the <code>wall:</code> lines that enclose it between the two commands. Walls must meet end to end, each point joining exactly two walls. The inside is filled and gridded on the same world grid as <code>rect</code>, so neighbouring rooms line up. A second closed loop inside the first makes a hole (a pillar or courtyard). Keep partition walls outside the block. Colour, opacity, wallwidth and an eye icon on a following <code>^</code> line apply to the room and its walls; <code>^text:</code> labels the room.</span>
-          <span class="ex"><code>wall: x1, y1, x2, y2 [, width]</code><br>Draws a thick structural line. Optional 5th value overrides thickness.</span>
-          <span class="ex"><code>hatch: x1, y1, x2, y2, angle, spacing [, #hex]</code><br>Fills a rectangle with parallel diagonal lines — white base, clipped lines, outer frame. <code>angle</code> in degrees (e.g. <code>45</code> or <code>-45</code>). <code>spacing</code> in world units (e.g. <code>0.5</code>). Useful for solid walls, structural zones, no-go areas.</span>
-          <span class="ex"><code>label: x1, y1, x2, y2, text</code><br>Centers TEXT (auto-uppercased) inside the box. <b>Box height controls font size</b> — use the same height on all labels for consistent sizing. <code>text:</code> works too.</span>
-          <span class="ex"><code>^text: text</code><br>Auto-label centred on previous shape.</span>
-          <span class="ex"><code>^textcolor: #hex</code><br>Sets the colour of the most recent label.</span>
-          <span class="ex"><code>^bg: #rrggbb</code><br>Sets a background fill colour on the previous shape. Drawn under the grid.</span>
-          <span class="ex"><code>^img: url</code><br>Sets a background image on the previous shape. Drawn under the grid, scaled to fit.</span>
-          <span class="ex"><code>^opacity: 0..1</code><br>Sets fill transparency (0 = clear, 1 = solid). Outline stays fully opaque.</span>
-          <span class="ex"><code>^elev: meters</code><br>Sets elevation. Higher = lighter fill. Relative to all elevated shapes in the drawing.</span>
-          <span class="ex"><code>^wallwidth: value</code><br>Overrides global wall thickness for the previous shape only.</span>
-          <span class="ex"><code>^translate: dx, dy</code><br>Shifts the previous shape by (dx, dy) world units.</span>
-          <span class="ex"><code>^rotate: angleDeg [, cx, cy]</code><br>Rotates the previous shape around its centre or a given world point.</span>
-          <span class="ex"><code>^textoffset: dx, dy</code><br>Shifts the label centre by (dx, dy) world units before any rotation. Applied before <code>^rotate-text:</code>.</span>
-          <span class="ex"><code>^rotate-text: angleDeg</code><br>Rotates the most recent label's text around its (optionally offset) centre. e.g. <code>^rotate-text: 90</code> for vertical text.</span>
-          <span class="ex"><code>image: x1, y1, x2, y2, url</code><br>Loads an image from a URL or relative filename and draws it scaled to the given rect. Shows a placeholder while loading. <code>img:</code> works too.</span>
-          <span class="ex"><code>place: componentName, x, y [, scale [, angle]]</code><br>Places a component at world position (x,y). Optional scale (default 1) and rotation angle in degrees CCW from +X axis (default 0, facing up = 90°). Built-in: <code>chair_rect</code>, <code>bed</code>.</span>
+          <span class="ex"><code>wall x1, y1, x2, y2 [, width]</code><br>Draws a thick structural line. Optional 5th value overrides thickness.</span>
+          <span class="ex"><code>hatch x1, y1, x2, y2, angle, spacing [, #hex]</code><br>Fills a rectangle with parallel diagonal lines — white base, clipped lines, outer frame. <code>angle</code> in degrees (e.g. <code>45</code> or <code>-45</code>). <code>spacing</code> in world units (e.g. <code>0.5</code>). Useful for solid walls, structural zones, no-go areas.</span>
+          <span class="ex"><code>label x1, y1, x2, y2, text</code><br>Centers TEXT (auto-uppercased) inside the box. <b>Box height controls font size</b> — use the same height on all labels for consistent sizing. <code>text:</code> works too.</span>
+          <span class="ex"><code>^text text</code><br>Auto-label centred on previous shape.</span>
+          <span class="ex"><code>^textcolor #hex</code><br>Sets the colour of the most recent label.</span>
+          <span class="ex"><code>^bg #rrggbb</code><br>Sets a background fill colour on the previous shape. Drawn under the grid.</span>
+          <span class="ex"><code>^img url</code><br>Sets a background image on the previous shape. Drawn under the grid, scaled to fit.</span>
+          <span class="ex"><code>^opacity 0..1</code><br>Sets fill transparency (0 = clear, 1 = solid). Outline stays fully opaque.</span>
+          <span class="ex"><code>^elev meters</code><br>Sets elevation. Higher = lighter fill. Relative to all elevated shapes in the drawing.</span>
+          <span class="ex"><code>^wallwidth value</code><br>Overrides global wall thickness for the previous shape only.</span>
+          <span class="ex"><code>^translate dx, dy</code><br>Shifts the previous shape by (dx, dy) world units.</span>
+          <span class="ex"><code>^rotate angleDeg [, cx, cy]</code><br>Rotates the previous shape around its centre or a given world point.</span>
+          <span class="ex"><code>^textoffset dx, dy</code><br>Shifts the label centre by (dx, dy) world units before any rotation. Applied before <code>^rotate-text:</code>.</span>
+          <span class="ex"><code>^rotate-text angleDeg</code><br>Rotates the most recent label's text around its (optionally offset) centre. e.g. <code>^rotate-text 90</code> for vertical text.</span>
+          <span class="ex"><code>image x1, y1, x2, y2, url</code><br>Loads an image from a URL or relative filename and draws it scaled to the given rect. Shows a placeholder while loading. <code>img:</code> works too.</span>
+          <span class="ex"><code>place componentName, x, y [, scale [, angle]]</code><br>Places a component at world position (x,y). Optional scale (default 1) and rotation angle in degrees CCW from +X axis (default 0, facing up = 90°). Built-in: <code>chair_rect</code>, <code>bed</code>.</span>
           <span class="ex"><code>@component myName … @end</code><br>Defines a reusable component in local coords (origin at centre). Supports <code>rect</code>, <code>oval</code>, <code>wall</code>, <code>line</code>, <code>label</code> inside. <code>line:</code> is a detail line using <code>componentthickness</code> with round caps — use it for furniture marks rather than structural walls.</span>
           <span class="ex"><code># comment</code> or <code>// comment</code><br>Ignored.</span>
         </div>
@@ -119,12 +119,12 @@
   </div>
 </div>
 
-<script src="js/cad-constants.js?v=204"></script>
-<script src="js/cad-state.js?v=204"></script>
-<script src="js/cad-parser.js?v=204"></script>
-<script src="js/cad-components.js?v=204"></script>
-<script src="js/cad-render.js?v=204"></script>
-<script src="js/cad-ui.js?v=204"></script>
-<script src="js/cad-actions.js?v=204"></script>
+<script src="js/cad-constants.js?v=205"></script>
+<script src="js/cad-state.js?v=205"></script>
+<script src="js/cad-parser.js?v=205"></script>
+<script src="js/cad-components.js?v=205"></script>
+<script src="js/cad-render.js?v=205"></script>
+<script src="js/cad-ui.js?v=205"></script>
+<script src="js/cad-actions.js?v=205"></script>
 </body>
 </html>

@@ -606,14 +606,14 @@ function updateOutput(){
   shapes.forEach(s => {
     if (s.type === 'rect'){
       const flags = s.nowall ? ', nowall' : '';
-      lines.push(`rect: ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}${flags}`);
+      lines.push(`rect ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}${flags}`);
     } else if (s.type === 'oval'){
       const flags = s.nowall ? ', nowall' : '';
-      lines.push(`oval: ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}${flags}`);
+      lines.push(`oval ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}${flags}`);
     } else if (s.type === 'line'){
-      lines.push(`line: ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}`);
+      lines.push(`line ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}`);
     } else if (s.type === 'wall'){
-      lines.push(`wall: ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}`);
+      lines.push(`wall ${r2(s.x1)}, ${r2(s.y1)}, ${r2(s.x2)}, ${r2(s.y2)}`);
     }
   });
   lines.push('@end');

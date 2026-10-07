@@ -1,70 +1,70 @@
-title: Parkside Annex: Level 3 (The Vault)
-units: m
-world: -45, -27, 45, 27
-grid: 1.5
-wallwidth: 0.3
-wallcolor: #4a1e6e
+title Parkside Annex: Level 3 (The Vault)
+units m
+world -45, -27, 45, 27
+grid 1.5
+wallwidth 0.3
+wallcolor #4a1e6e
 
 # Level 3 is the original vault, sealed since the Annex's first closure.
 # Scale: 1 square = 1.5 m. Reached only by the service shaft from Level 2.
 
 # ── FOOTPRINT
-rect: -27, -18, 36, 18
+rect -27, -18, 36, 18
 
 # ── SOLID ROCK AND STRUCTURE
-hatch: -27, 15, 36, 18, 45, 1
-hatch: -27, -18, 36, -15, 45, 1
-hatch: -27, -15, -24, 15, 45, 1
-hatch: 6, 9, 36, 15, 45, 1
-hatch: 6, -15, 36, -6, 45, 1
-hatch: 30, 4.5, 36, 9, 45, 1
-hatch: 30, -6, 36, -4.5, 45, 1
+hatch -27, 15, 36, 18, 45, 1
+hatch -27, -18, 36, -15, 45, 1
+hatch -27, -15, -24, 15, 45, 1
+hatch 6, 9, 36, 15, 45, 1
+hatch 6, -15, 36, -6, 45, 1
+hatch 30, 4.5, 36, 9, 45, 1
+hatch 30, -6, 36, -4.5, 45, 1
 
 # ── SERVICE SHAFT LANDING (directly under the Level 2 sub-station)
-rect: 31.5, -4.5, 36, 4.5
-label: 31.5, 2.4, 36, 4.2, Landing
-rect: 33, -1.5, 36, 1.5
-^text: Shaft
-door: 31.5, -1.5, 31.5, 1.5
+rect 31.5, -4.5, 36, 4.5
+label 31.5, 2.4, 36, 4.2, Landing
+rect 33, -1.5, 36, 1.5
+^text Shaft
+door 31.5, -1.5, 31.5, 1.5
 
 # ── GUARDIAN PASSAGE AND AMBUSH ALCOVES (Shadow Security Robot)
-rect: 12, -3, 31.5, 3
-^text: Guardian Passage
-rect: 18, 3, 22.5, 6
-^text: Alcove
-rect: 24, -6, 28.5, -3
-^text: Alcove
+rect 12, -3, 31.5, 3
+^text Guardian Passage
+rect 18, 3, 22.5, 6
+^text Alcove
+rect 24, -6, 28.5, -3
+^text Alcove
 
 # ── VAULT DOOR AND VESTIBULE
-rect: 6, -3, 12, 3
-^text: Vestibule
-^text2: heavy door east
-door: 12, -1.5, 12, 1.5
-rect: 7.5, 3, 10.5, 6
-^text: Locker
-^text2: TL12
+rect 6, -3, 12, 3
+^text Vestibule
+^text2 heavy door east
+door 12, -1.5, 12, 1.5
+rect 7.5, 3, 10.5, 6
+^text Locker
+^text2 TL12
 
 # ── VAULT INTERIOR (records stacks, overgrown)
-rect: -12, -15, 6, 15, noleft, noright
-^text: Vault
-door: 6, -1.5, 6, 1.5
-rect: -9, -13.5, -7.5, -4.5
-rect: -9, 4.5, -7.5, 13.5
-rect: -3, -13.5, -1.5, -4.5
-rect: -3, 4.5, -1.5, 13.5
-rect: 3, -13.5, 4.5, -4.5
-rect: 3, 4.5, 4.5, 13.5
-hatch: -12, -12, -4.5, 12, 45, 0.5
-hatch: -12, -12, -4.5, 12, -45, 0.5
+rect -12, -15, 6, 15, noleft, noright
+^text Vault
+door 6, -1.5, 6, 1.5
+rect -9, -13.5, -7.5, -4.5
+rect -9, 4.5, -7.5, 13.5
+rect -3, -13.5, -1.5, -4.5
+rect -3, 4.5, -1.5, 13.5
+rect 3, -13.5, 4.5, -4.5
+rect 3, 4.5, 4.5, 13.5
+hatch -12, -12, -4.5, 12, 45, 0.5
+hatch -12, -12, -4.5, 12, -45, 0.5
 
 # ── ARCHIVE CHAMBER (Subject 1106, the deepest room)
-rect: -24, -9, -12, 9
-door: -12, -1.5, -12, 1.5
-oval: -22.5, -6, -15, 6
-^text: Subject 1106
-rect: -19.5, 6, -13.5, 9
-^text: Destruct Control
+rect -24, -9, -12, 9
+door -12, -1.5, -12, 1.5
+oval -22.5, -6, -15, 6
+^text Subject 1106
+rect -19.5, 6, -13.5, 9
+^text Destruct Control
 
 # ── KEY
-label: -27, -26, 3, -23.5, Destruct: Electronics or Engineer, 10+ (Ch. 5)
-label: 6, -26, 36, -23.5, Locker: 1106-era containment stock (Ch. 5, 5.2)
+label -27, -26, 3, -23.5, Destruct: Electronics or Engineer, 10+ (Ch. 5)
+label 6, -26, 36, -23.5, Locker: 1106-era containment stock (Ch. 5, 5.2)

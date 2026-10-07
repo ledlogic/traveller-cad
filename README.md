@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.49
+- **Current version:** v1.51
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -17,16 +17,16 @@ Starship CAD is a multi-file browser application. You type commands in a console
 ## Quick Start
 
 ```
-title: My Ship — Deck 1
-units: m
-world: -20, -15, 20, 15
-grid: 1.5
-wallwidth: 0.25
-wallcolor: #1e4a3d
+title My Ship — Deck 1
+units m
+world -20, -15, 20, 15
+grid 1.5
+wallwidth 0.25
+wallcolor #1e4a3d
 
-rect: -18, -10, 18, 10
-wall: -18, 10, 18, 10
-label: -10, -2, 10, 2, Cargo Bay
+rect -18, -10, 18, 10
+wall -18, 10, 18, 10
+label -10, -2, 10, 2, Cargo Bay
 ```
 
 ---
@@ -35,23 +35,23 @@ label: -10, -2, 10, 2, Cargo Bay
 
 | Command | Syntax | Notes |
 |---|---|---|
-| `title` | `title: My Drawing` | Sets document title (Optima font in header). **The colon after any command name is optional**, including `^` commands: `rect -18 3 -10.5 -3` and `^text Bridge` work the same as the colon forms |
-| `units` | `units: m` | Cosmetic unit label only |
-| `world` | `world: x1, y1, x2, y2` | Defines the real-world bounding box |
-| `grid` | `grid: 1.5` | Structure interior grid spacing (default 1.5) |
-| `wallwidth` | `wallwidth: 0.2` | Default wall/outline stroke thickness in world units |
-| `wallcolor` | `wallcolor: #1e4a3d` | Wall/outline/label colour; 3- or 6-digit hex |
-| `featurethickness` | `featurethickness: 0.1` | Stroke width for door panel outlines |
-| `componentthickness` | `componentthickness: 0.03` | Stroke width for component shape outlines |
-| `rect` | `rect: x1, y1, x2, y2 [nowall] [#hex]` | Rectangle structure — white fill, grid, outline |
-| `oval` | `oval: x1, y1, x2, y2 [nowall] [#hex]` | Ellipse structure inside bounding box |
-| `semicircle` | `semicircle: x1, y1, x2, y2, dir [flags] [#hex]` | Half-ellipse; `dir` = flat edge side: `left right top bottom` |
-| `wall` | `wall: x1, y1, x2, y2 [, width] [#hex]` | Thick structural line |
+| `title` | `title My Drawing` | Sets document title (Optima font in header). **The colon after any command name is optional**, including `^` commands: `rect -18 3 -10.5 -3` and `^text Bridge` work the same as the colon forms |
+| `units` | `units m` | Cosmetic unit label only |
+| `world` | `world x1, y1, x2, y2` | Defines the real-world bounding box |
+| `grid` | `grid 1.5` | Structure interior grid spacing (default 1.5) |
+| `wallwidth` | `wallwidth 0.2` | Default wall/outline stroke thickness in world units |
+| `wallcolor` | `wallcolor #1e4a3d` | Wall/outline/label colour; 3- or 6-digit hex |
+| `featurethickness` | `featurethickness 0.1` | Stroke width for door panel outlines |
+| `componentthickness` | `componentthickness 0.03` | Stroke width for component shape outlines |
+| `rect` | `rect x1, y1, x2, y2 [nowall] [#hex]` | Rectangle structure — white fill, grid, outline |
+| `oval` | `oval x1, y1, x2, y2 [nowall] [#hex]` | Ellipse structure inside bounding box |
+| `semicircle` | `semicircle x1, y1, x2, y2, dir [flags] [#hex]` | Half-ellipse; `dir` = flat edge side: `left right top bottom` |
+| `wall` | `wall x1, y1, x2, y2 [, width] [#hex]` | Thick structural line |
 | `polyroom` / `endpolyroom` | `polyroom` ... `wall:` lines ... `endpolyroom` | Fills a room of any shape. The `wall:` lines between the two commands must meet end to end (each point joins exactly two walls) and enclose the room. The inside is filled and gridded on the world grid, so it lines up with neighbouring `rect` rooms. A second closed loop inside the first becomes a hole, such as a pillar. Keep partition walls outside the block. `^text:`, `^opacity:`, `^wallcolor:`, `^wallwidth:` and `^icon: eye` after `endpolyroom` apply to the room and its walls |
-| `door` | `door: x1, y1, x2, y2 [#hex]` | Sliding door — wall line + hollow panel rect inset 0.3 m |
-| `label` | `label: x1, y1, x2, y2, text` | Uppercase centred text; box height controls font size |
+| `door` | `door x1, y1, x2, y2 [#hex]` | Sliding door — wall line + hollow panel rect inset 0.3 m |
+| `label` | `label x1, y1, x2, y2, text` | Uppercase centred text; box height controls font size |
 | `@component … @end` | See below | Define a reusable component in local coordinates |
-| `place` | `place: name, x, y [, scale [, angle]]` | Place a component at world position with optional scale and rotation |
+| `place` | `place name, x, y [, scale [, angle]]` | Place a component at world position with optional scale and rotation |
 | `#` or `//` | `# comment` | Ignored |
 
 ### `rect` / `oval` / `semicircle` flags
@@ -78,13 +78,13 @@ Angle is **degrees CCW from +X axis**, matching standard mathematical convention
 
 ```
 @component chair_rect
-  rect: -0.22, -0.22,  0.22,  0.22
-  rect: -0.22,  0.22,  0.22,  0.32
-  rect: -0.30, -0.10, -0.22,  0.22
-  rect:  0.22, -0.10,  0.30,  0.22
+  rect -0.22, -0.22,  0.22,  0.22
+  rect -0.22,  0.22,  0.22,  0.32
+  rect -0.30, -0.10, -0.22,  0.22
+  rect 0.22, -0.10,  0.30,  0.22
 @end
 
-place: chair_rect, 5, 3, 1, 90
+place chair_rect, 5, 3, 1, 90
 ```
 
 Supports `rect`, `oval`, `wall`, `label` inside. Origin at component centre.
@@ -168,6 +168,8 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.51 | 2026-10-07 | Removed the optional colon after command names from every example: the built-in sample script, the README Quick Start, component example and command table, the in-app reference panel, and the component editor's generated output. The one pair of colon examples left in the reference panel is the note that explains colons are optional. Version history rows keep their original wording. Cache-bust bumped |
+| v1.50 | 2026-10-07 | Removed the now-optional colon after command names from the 16 example drawings in `tc3/` (983 colons; colons inside label and title text kept). Output verified identical to before. `star-bird-1.tc3` left as written |
 | v1.49 | 2026-10-07 | The colon after a `^` command name is now optional (`^text Bridge`, `^textcolor #690000`, `^opacity 0.4`, and so on); main commands already allowed it; reference panel and cache-bust updated |
 | v1.48 | 2026-10-07 | New `polyroom` ... `endpolyroom` command: interconnected `wall:` lines define a closed shape that is filled and gridded on the world grid (even-odd fill, so inner loops become holes); errors for open loops, T-junctions and unclosed blocks; properties on a following `^` line pass to the walls; hover, anchors and PNG export handle it; `polyroom-demo.tc3` added; cache-bust bumped |
 | v1.47 | 2026-10-07 | `parkside-annex-1.tc3`: added the surface apron and six-tube mail launch rack outside the cargo lock |
