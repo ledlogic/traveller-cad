@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Starship CAD</title>
-<link rel="stylesheet" href="css/cad.css?v=202">
+<link rel="stylesheet" href="css/cad.css?v=204">
 <link href="https://fonts.cdnfonts.com/css/univers" rel="stylesheet">
 </head>
 <body>
@@ -71,9 +71,11 @@
           <span class="ex"><code>wallwidth: 0.2</code><br>Optional. Default wall/outline thickness, default 0.2.</span>
           <span class="ex"><code>featurethickness: 0.1</code><br>Optional. Line thickness used for feature details like door panel outlines, default 0.1 m.</span>
           <span class="ex"><code>wallcolor: #22574A</code><br>Optional. Sets the wall/outline/label colour for all shapes that follow. Use 3- or 6-digit hex. Per-shape override: append <code>#hex</code> at the end of any <code>rect</code>, <code>oval</code>, <code>semicircle</code>, or <code>wall</code> line.</span>
+          <span class="ex"><strong>Colons are optional</strong> everywhere: <code>rect -18 3 -10.5 -3</code> and <code>^text Bridge</code> work the same as <code>rect: -18, 3, -10.5, -3</code> and <code>^text: Bridge</code>. Commas between numbers are optional too.</span>
           <span class="ex"><code>rect: x1, y1, x2, y2</code><br>Draws a rectangular structure — white fill, gridded, outlined.</span>
           <span class="ex"><code>oval: x1, y1, x2, y2</code><br>Draws an elliptical structure inside the given bounding box.</span>
           <span class="ex"><code>semicircle: x1, y1, x2, y2, direction [flags]</code><br>Half-ellipse structure. Direction is which side the <em>flat edge</em> faces: <code>left</code> <code>right</code> <code>top</code> <code>bottom</code>. Optional flags: <code>noflatwall</code> suppresses the closing straight edge; <code>noleftwall</code> <code>norightwall</code> <code>notopwall</code> <code>nobottomwall</code> suppress individual sides; <code>nowall</code> suppresses all outlines.</span>
+          <span class="ex"><code>polyroom</code> … <code>endpolyroom</code><br>Fills a room of any shape. Put the <code>wall:</code> lines that enclose it between the two commands. Walls must meet end to end, each point joining exactly two walls. The inside is filled and gridded on the same world grid as <code>rect</code>, so neighbouring rooms line up. A second closed loop inside the first makes a hole (a pillar or courtyard). Keep partition walls outside the block. Colour, opacity, wallwidth and an eye icon on a following <code>^</code> line apply to the room and its walls; <code>^text:</code> labels the room.</span>
           <span class="ex"><code>wall: x1, y1, x2, y2 [, width]</code><br>Draws a thick structural line. Optional 5th value overrides thickness.</span>
           <span class="ex"><code>hatch: x1, y1, x2, y2, angle, spacing [, #hex]</code><br>Fills a rectangle with parallel diagonal lines — white base, clipped lines, outer frame. <code>angle</code> in degrees (e.g. <code>45</code> or <code>-45</code>). <code>spacing</code> in world units (e.g. <code>0.5</code>). Useful for solid walls, structural zones, no-go areas.</span>
           <span class="ex"><code>label: x1, y1, x2, y2, text</code><br>Centers TEXT (auto-uppercased) inside the box. <b>Box height controls font size</b> — use the same height on all labels for consistent sizing. <code>text:</code> works too.</span>
@@ -117,12 +119,12 @@
   </div>
 </div>
 
-<script src="js/cad-constants.js?v=202"></script>
-<script src="js/cad-state.js?v=202"></script>
-<script src="js/cad-parser.js?v=202"></script>
-<script src="js/cad-components.js?v=202"></script>
-<script src="js/cad-render.js?v=202"></script>
-<script src="js/cad-ui.js?v=202"></script>
-<script src="js/cad-actions.js?v=202"></script>
+<script src="js/cad-constants.js?v=204"></script>
+<script src="js/cad-state.js?v=204"></script>
+<script src="js/cad-parser.js?v=204"></script>
+<script src="js/cad-components.js?v=204"></script>
+<script src="js/cad-render.js?v=204"></script>
+<script src="js/cad-ui.js?v=204"></script>
+<script src="js/cad-actions.js?v=204"></script>
 </body>
 </html>

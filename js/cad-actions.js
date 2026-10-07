@@ -435,7 +435,7 @@ function updateInfoBar(){
     }
   } else if (currentDoc && currentDoc.shapes && hoverWx !== null){
     const hovered = currentDoc.shapes.find(s =>
-      (s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle') &&
+      (s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle' || s.type === 'polyroom') &&
       hoverWx >= Math.min(s.x1,s.x2) && hoverWx <= Math.max(s.x1,s.x2) &&
       hoverWy >= Math.min(s.y1,s.y2) && hoverWy <= Math.max(s.y1,s.y2)
     );
@@ -586,7 +586,7 @@ el.btnPng.addEventListener('click', () => {
   const elevRangeEx = Math.max(elevMaxEx - elevMinEx, 1);
 
   currentDoc.shapes
-    .filter(s => ['rect','oval','semicircle'].includes(s.type) && visEx(s))
+    .filter(s => ['rect','oval','semicircle','polyroom'].includes(s.type) && visEx(s))
     .forEach(s => drawStructure(s, toScreen, exportScale, currentDoc.gridSize,
                                 currentDoc.wallWidth, currentDoc.wallColor, elevMinEx, elevRangeEx));
   currentDoc.shapes

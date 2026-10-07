@@ -3,8 +3,9 @@ units: m
 world: -30, -15, 30, 15
 grid: 1.5
 wallwidth: 0.25
-wallcolor: #ffffff
+wallcolor: #690000
 
+polyroom 
 wall -24 3 -24 -3
 
 wall -24 3 -12 9
@@ -24,7 +25,9 @@ wall -7.5 -9 -4.5 -3
 wall -12 -9 -7.5 -9
 
 wall -24 -3 -12 -9
+endpolyroom 
 
 wallwidth: 0.1
 
-rect -18 3.5 -10.5 -3.5 #690000
+rect -18 3.5 -10.5 -3.5 #690000 
+^text Bridge

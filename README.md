@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.47
+- **Current version:** v1.49
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -35,7 +35,7 @@ label: -10, -2, 10, 2, Cargo Bay
 
 | Command | Syntax | Notes |
 |---|---|---|
-| `title` | `title: My Drawing` | Sets document title (Optima font in header) |
+| `title` | `title: My Drawing` | Sets document title (Optima font in header). **The colon after any command name is optional**, including `^` commands: `rect -18 3 -10.5 -3` and `^text Bridge` work the same as the colon forms |
 | `units` | `units: m` | Cosmetic unit label only |
 | `world` | `world: x1, y1, x2, y2` | Defines the real-world bounding box |
 | `grid` | `grid: 1.5` | Structure interior grid spacing (default 1.5) |
@@ -47,6 +47,7 @@ label: -10, -2, 10, 2, Cargo Bay
 | `oval` | `oval: x1, y1, x2, y2 [nowall] [#hex]` | Ellipse structure inside bounding box |
 | `semicircle` | `semicircle: x1, y1, x2, y2, dir [flags] [#hex]` | Half-ellipse; `dir` = flat edge side: `left right top bottom` |
 | `wall` | `wall: x1, y1, x2, y2 [, width] [#hex]` | Thick structural line |
+| `polyroom` / `endpolyroom` | `polyroom` ... `wall:` lines ... `endpolyroom` | Fills a room of any shape. The `wall:` lines between the two commands must meet end to end (each point joins exactly two walls) and enclose the room. The inside is filled and gridded on the world grid, so it lines up with neighbouring `rect` rooms. A second closed loop inside the first becomes a hole, such as a pillar. Keep partition walls outside the block. `^text:`, `^opacity:`, `^wallcolor:`, `^wallwidth:` and `^icon: eye` after `endpolyroom` apply to the room and its walls |
 | `door` | `door: x1, y1, x2, y2 [#hex]` | Sliding door — wall line + hollow panel rect inset 0.3 m |
 | `label` | `label: x1, y1, x2, y2, text` | Uppercase centred text; box height controls font size |
 | `@component … @end` | See below | Define a reusable component in local coordinates |
@@ -167,6 +168,8 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.49 | 2026-10-07 | The colon after a `^` command name is now optional (`^text Bridge`, `^textcolor #690000`, `^opacity 0.4`, and so on); main commands already allowed it; reference panel and cache-bust updated |
+| v1.48 | 2026-10-07 | New `polyroom` ... `endpolyroom` command: interconnected `wall:` lines define a closed shape that is filled and gridded on the world grid (even-odd fill, so inner loops become holes); errors for open loops, T-junctions and unclosed blocks; properties on a following `^` line pass to the walls; hover, anchors and PNG export handle it; `polyroom-demo.tc3` added; cache-bust bumped |
 | v1.47 | 2026-10-07 | `parkside-annex-1.tc3`: added the surface apron and six-tube mail launch rack outside the cargo lock |
 | v1.46 | 2026-10-07 | Added `tc3/parkside-annex-locker.tc3`, a close-up of the Level 3 vestibule and containment locker (scenario section 5.2); drawings.json updated |
 | v1.45 | 2026-10-07 | Added Parkside Annex Levels 1-3 (`tc3/parkside-annex-1.tc3`, `-2`, `-3`) for the scenario Are Old Friends Electric; drawings.json updated |

@@ -4,6 +4,58 @@
    ===================== */
 
 /* ============================= parser ============================= */
+/* ============================= polyroom ============================= */
+// Builds a filled polygon room from a list of interconnected wall shapes.
+// Every wall endpoint must meet exactly one other wall endpoint, so the walls form
+// one or more closed loops. Several loops are allowed: a loop inside another becomes a hole.
+function buildPolyroom(walls){
+  const r6 = v => Math.round(v * 1e6) / 1e6;
+  const verts = new Map();
+  const vert = (x, y) => {
+    const k = r6(x) + ',' + r6(y);
+    if (!verts.has(k)) verts.set(k, { x: r6(x), y: r6(y), edges: [] });
+    return verts.get(k);
+  };
+  const edges = [];
+  walls.forEach(w => {
+    const a = vert(w.x1, w.y1), b = vert(w.x2, w.y2);
+    if (a === b) return;                       // zero-length wall, ignore
+    const e = { a, b, used: false };
+    edges.push(e); a.edges.push(e); b.edges.push(e);
+  });
+  if (edges.length < 3) throw new Error('polyroom needs at least 3 walls');
+  for (const v of verts.values()){
+    if (v.edges.length !== 2)
+      throw new Error(`polyroom walls do not form a closed loop: the point (${v.x}, ${v.y}) joins ${v.edges.length} wall(s), expected exactly 2`);
+  }
+  const loops = [];
+  for (const start of edges){
+    if (start.used) continue;
+    const pts = [];
+    let e = start, cur = start.a;
+    for (;;){
+      e.used = true;
+      pts.push({ x: cur.x, y: cur.y });
+      const nxt = (e.a === cur) ? e.b : e.a;
+      const ne = nxt.edges.find(x => x !== e);
+      cur = nxt;
+      if (ne === start || ne.used) break;
+      e = ne;
+    }
+    if (pts.length < 3) throw new Error('polyroom has a loop with fewer than 3 points');
+    loops.push(pts);
+  }
+  const xs = [], ys = [];
+  loops.forEach(l => l.forEach(p => { xs.push(p.x); ys.push(p.y); }));
+  return { type: 'polyroom', loops, nowall: true, walls,
+           x1: Math.min(...xs), y1: Math.min(...ys), x2: Math.max(...xs), y2: Math.max(...ys) };
+}
+
+// ^ commands that take an argument. The colon after the name is optional:
+// "^text Bridge" and "^text: Bridge" mean the same thing.
+const CARET_ARG_COMMANDS = ['text','text2','textcolor','textoffset','rotate-text','opacity','elev',
+                            'wallwidth','wallcolor','bg','img','translate','rotate','icon'];
+
 function parseNumbers(str, count){
   const parts = str.split(/[\s,]+/).filter(Boolean);
   if (parts.length < count) throw new Error(`expected ${count} numbers, got ${parts.length}`);
@@ -92,6 +144,7 @@ function parseScript(text){
   doc.parsedComponents = parsedComponents;
 
   // ── second pass: parse main script ───────────────────────────────
+  let polyOpen = null;   // open polyroom block: { lineNum, walls }
   scriptLines.forEach((raw, idx) => {
     const lineNum = idx + 1;
     const line = raw.trim();
@@ -100,13 +153,20 @@ function parseScript(text){
 
     // ^ command — auto-label, background colour, or background image on the previous shape
     if (line.startsWith('^')){
-      const rest = line.slice(1).trim();
+      let rest = line.slice(1).trim();
       if (!rest){ errors.push({lineNum, msg:'^ needs text, #hex, img:, ^translate:, or ^rotate:'}); return; }
+      // the colon after a ^ command name is optional: "^text Bridge" == "^text: Bridge"
+      const caret = rest.match(/^([A-Za-z][A-Za-z0-9-]*)\s*:?\s*(.*)$/);
+      if (caret && CARET_ARG_COMMANDS.includes(caret[1].toLowerCase())){
+        rest = caret[1].toLowerCase() + ':' + (caret[2] ? ' ' + caret[2] : '');
+      }
 
       // find last non-label shape so chained ^ commands all target the same rect/oval/etc
       const prev = [...doc.shapes].reverse().find(s =>
-        ['rect','oval','semicircle','wall','door','image','hatch','stairs'].includes(s.type));
+        ['rect','oval','semicircle','wall','door','image','hatch','stairs','polyroom'].includes(s.type));
       if (!prev){ errors.push({lineNum, msg:'^ has no preceding shape'}); return; }
+      // a polyroom passes colour, opacity, wall width and staff visibility on to its walls too
+      const targets = prev.type === 'polyroom' ? [prev, ...prev.walls] : [prev];
 
       // ^nowall — suppress outline on the previous shape
       if (rest.toLowerCase() === 'nowall'){
@@ -125,7 +185,8 @@ function parseScript(text){
       if (rest.toLowerCase().startsWith('wallcolor:')){
         try {
           const hex = rest.slice(10).trim().replace(/^#/,'');
-          prev.color = parseHex(hex);
+          const wc = parseHex(hex);
+          targets.forEach(t => { t.color = wc; });
         } catch(e){ errors.push({lineNum, msg: e.message}); }
         return;
       }
@@ -175,7 +236,7 @@ function parseScript(text){
         try {
           const v = parseFloat(rest.slice(8).trim());
           if (Number.isNaN(v)) throw new Error('opacity must be a number 0..1');
-          prev.opacity = Math.max(0, Math.min(1, v));
+          targets.forEach(t => { t.opacity = Math.max(0, Math.min(1, v)); });
         } catch(e){ errors.push({lineNum, msg: e.message}); }
         return;
       }
@@ -195,7 +256,7 @@ function parseScript(text){
         try {
           const v = parseFloat(rest.slice(10).trim());
           if (Number.isNaN(v) || v <= 0) throw new Error('wallwidth must be a positive number');
-          prev.wallWidth = v;
+          targets.forEach(t => { t.wallWidth = v; });
         } catch(e){ errors.push({lineNum, msg: e.message}); }
         return;
       }
@@ -286,7 +347,7 @@ function parseScript(text){
         const cx = (prev.x1 + prev.x2) / 2;
         const cy = (prev.y1 + prev.y2) / 2;
         // eye icon marks this shape and its parent as staff-only
-        if (iconName === 'eye') prev.staffOnly = true;
+        if (iconName === 'eye') targets.forEach(t => { t.staffOnly = true; });
         // Don't draw eye icon on doors — visibility is handled by staffOnly flag alone
         if (iconName === 'eye' && prev.type === 'door') return;
         doc.shapes.push({ type:'icon', x: cx, y: cy, icon: iconName, lineNum,
@@ -396,7 +457,9 @@ function parseScript(text){
           }
           const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
           const color = cm ? parseHex(cm[1]) : null;
-          doc.shapes.push({ type:'wall', x1:n[0], y1:n[1], x2:n[2], y2:n[3], width, color, lineNum });
+          const wallShape = { type:'wall', x1:n[0], y1:n[1], x2:n[2], y2:n[3], width, color, lineNum };
+          doc.shapes.push(wallShape);
+          if (polyOpen) polyOpen.walls.push(wallShape);
           break;
         }
         case 'door': {
@@ -404,6 +467,21 @@ function parseScript(text){
           const cm = rest.match(/#([0-9a-fA-F]{3,6})\b/);
           const color = cm ? parseHex(cm[1]) : null;
           doc.shapes.push({ type:'door', x1:n[0], y1:n[1], x2:n[2], y2:n[3], color, lineNum });
+          break;
+        }
+        case 'polyroom': {
+          // polyroom ... endpolyroom: the wall: lines between them are interconnected walls that
+          // enclose a room; the enclosed area is filled and gridded like a rect.
+          if (polyOpen) throw new Error(`polyroom already open (started on line ${polyOpen.lineNum}); close it with endpolyroom`);
+          polyOpen = { lineNum, walls: [] };
+          break;
+        }
+        case 'endpolyroom': {
+          if (!polyOpen) throw new Error('endpolyroom without a matching polyroom');
+          const open = polyOpen; polyOpen = null;
+          const room = buildPolyroom(open.walls);
+          room.lineNum = open.lineNum;
+          doc.shapes.push(room);
           break;
         }
         case 'hatch': {
@@ -488,6 +566,7 @@ function parseScript(text){
       errors.push({lineNum, msg:e.message});
     }
   });
+  if (polyOpen) errors.push({lineNum: polyOpen.lineNum, msg:'polyroom is never closed: add endpolyroom'});
 
   return { doc, errors };
 }

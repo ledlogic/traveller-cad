@@ -1,0 +1,50 @@
+title: Polyroom Demo
+units: m
+world: -30, -22, 30, 22
+grid: 1.5
+wallwidth: 0.25
+wallcolor: #1e4a6e
+
+# polyroom ... endpolyroom: the wall lines between the two commands enclose the room.
+# The inside is filled and gridded on the same world grid as rect, so rooms line up.
+
+# ── L-SHAPED ROOM
+polyroom
+wall: -27, -9, -27, 9
+wall: -27, 9, -12, 9
+wall: -12, 9, -12, 0
+wall: -12, 0, -3, 0
+wall: -3, 0, -3, -9
+wall: -3, -9, -27, -9
+endpolyroom
+^text: L-Shaped Room
+
+# ── A PLAIN RECT BELOW IT: the grid lines match across the shared wall
+rect: -27, -18, -3, -9
+^text: Rect For Comparison
+
+# ── HEXAGONAL ROOM
+polyroom
+wall: 9, 8, 12, 13
+wall: 12, 13, 18, 13
+wall: 18, 13, 21, 8
+wall: 21, 8, 18, 3
+wall: 18, 3, 12, 3
+wall: 12, 3, 9, 8
+endpolyroom
+^text: Hexagon
+
+# ── ROOM WITH A PILLAR (a second closed loop inside the first becomes a hole)
+polyroom
+wall: 6, -18, 27, -18
+wall: 27, -18, 27, -4
+wall: 27, -4, 6, -4
+wall: 6, -4, 6, -18
+wall: 14.25, -13.5, 18.75, -13.5
+wall: 18.75, -13.5, 18.75, -8.5
+wall: 18.75, -8.5, 14.25, -8.5
+wall: 14.25, -8.5, 14.25, -13.5
+endpolyroom
+^text: Pillar Room
+
+door: 12, 3, 15, 3

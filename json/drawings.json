@@ -85,11 +85,16 @@
       "description": "Are Old Friends Electric. Close-up of the vault vestibule and the sealed containment equipment locker: three racks of three stun and ion weapons, the vault door and the vault interior stub."
     },
     {
-      "id": "star-bird-1",
-      "file": "tc3/star-bird-1.tc3",
-      "title": "Star Bird Upper Deck Plan",
-      "description": ""
+      "id": "polyroom-demo",
+      "file": "tc3/polyroom-demo.tc3",
+      "title": "Polyroom Demo",
+      "description": "Demonstrates polyroom ... endpolyroom: L-shaped room, hexagon, and a room with a pillar hole, gridded on the world grid beside a plain rect."
+		},
+		{
+			"id": "star-bird-1",
+			"file": "tc3/star-bird-1.tc3",
+			"title": "Star Bird Upper Deck Plan",
+			"description": ""
     }
-    
   ]
 }

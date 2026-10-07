@@ -137,7 +137,7 @@ function renderCanvas(){
 
   // structures first (fill + grid + outline)
   currentDoc.shapes
-    .filter(s => (s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle') && vis(s))
+    .filter(s => (s.type === 'rect' || s.type === 'oval' || s.type === 'semicircle' || s.type === 'polyroom') && vis(s))
     .forEach(s => drawStructure(s, toScreen, scale, currentDoc.gridSize, currentDoc.wallWidth, currentDoc.wallColor, elevMin, elevRange));
 
   // walls on top
@@ -363,6 +363,14 @@ function shapePath(s, toScreen, scale){
     const rx = Math.abs(s.x2 - s.x1) / 2 * scale;
     const ry = Math.abs(s.y2 - s.y1) / 2 * scale;
     ctx.ellipse(scx, scy, Math.max(rx,0.01), Math.max(ry,0.01), 0, 0, Math.PI * 2);
+  } else if (s.type === 'polyroom'){
+    s.loops.forEach(loop => {
+      loop.forEach((pt, i) => {
+        const [sx, sy] = toScreen(pt.x, pt.y);
+        if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      });
+      ctx.closePath();
+    });
   } else if (s.type === 'semicircle'){
     // bounding box corners in screen space
     const [sx1, sy1] = toScreen(s.x1, s.y1);
@@ -421,7 +429,7 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
   if (s.opacity !== undefined) ctx.globalAlpha = s.opacity;
   shapePath(s, toScreen, scale);
   ctx.fillStyle = fillColor;
-  ctx.fill();
+  ctx.fill(s.type === 'polyroom' ? 'evenodd' : 'nonzero');
 
   // Background image on top of fill, clipped to shape
   if (s.bgImage){
@@ -441,7 +449,7 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
 
   ctx.save();
   shapePath(s, toScreen, scale);
-  ctx.clip();
+  ctx.clip(s.type === 'polyroom' ? 'evenodd' : 'nonzero');
   drawGrid(s, toScreen, gridSize);
   ctx.restore();
   // Keep globalAlpha for outline — opacity applies to whole shape including walls
@@ -996,6 +1004,8 @@ function drawAnchors(s, toScreen, hoverWx, hoverWy){
     points.push([s.x1, s.y1], [s.x2, s.y1], [s.x1, s.y2], [s.x2, s.y2]);
     points.push([cx, cy]);
     points.push([cx, s.y1], [cx, s.y2], [s.x1, cy], [s.x2, cy]);
+  } else if (s.type === 'polyroom'){
+    s.loops.forEach(l => l.forEach(pt => points.push([pt.x, pt.y])));
   } else if (s.type === 'wall' || s.type === 'door'){
     points.push([s.x1, s.y1], [s.x2, s.y2]);
     points.push([(s.x1+s.x2)/2, (s.y1+s.y2)/2]);
