@@ -34,6 +34,17 @@ rect: 31.5, -4.5, 36, 4.5
 door: 31.5, -1.5, 31.5, 1.5
 door: 36, -1.5, 36, 1.5
 
+# ── SURFACE APRON AND MAIL LAUNCH RACK (outside the cargo lock, in vacuum)
+rect: 36, -4.5, 43.5, 4.5, nowall
+^opacity: 0.35
+oval: 38.4, -3.9, 39.6, -2.7
+oval: 38.4, -0.6, 39.6, 0.6
+oval: 38.4, 2.7, 39.6, 3.9
+oval: 41.4, -3.9, 42.6, -2.7
+oval: 41.4, -0.6, 42.6, 0.6
+oval: 41.4, 2.7, 42.6, 3.9
+label: 36, 5.1, 45, 7.3, Mail Launch Rack (surface)
+
 # ── MAIN CORRIDOR (west and east of the shaft landing)
 rect: -31.5, -3, -7.5, 3
 ^text: Corridor
@@ -89,4 +100,4 @@ door: 22.5, -3, 25.5, -3
 
 # ── KEY
 label: -33, -25.5, 3, -22.5, Level 1: two to three TMI contract guards
-label: 6, -25.5, 42, -22.5, Disused airlock = quiet. Cargo lock = loud.
+label: 6, -25.5, 42, -22.5, Disused airlock = quiet. Cargo lock = loud. Rack = 6 tubes (Ch. 5, 5.3)

@@ -83,6 +83,13 @@
       "file": "tc3/parkside-annex-locker.tc3",
       "title": "Parkside Annex: Level 3 Locker (5.2)",
       "description": "Are Old Friends Electric. Close-up of the vault vestibule and the sealed containment equipment locker: three racks of three stun and ion weapons, the vault door and the vault interior stub."
+    },
+    {
+      "id": "star-bird-1",
+      "file": "tc3/star-bird-1.tc3",
+      "title": "Star Bird Upper Deck Plan",
+      "description": ""
     }
+    
   ]
 }
