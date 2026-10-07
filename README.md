@@ -3,7 +3,7 @@
 **A browser-based, text-command CAD tool for designing starship and submarine deck plans in the style of Traveller Starship Geomorphs 2.0.**
 
 - **Started:** 2026-07-23
-- **Current version:** v1.44
+- **Current version:** v1.46
 - **License:** Anthropic / CC BY-NC 4.0 (geomorph symbols derived from Pearce Design Studio, LLC)
 
 ---
@@ -167,6 +167,8 @@ Saved files and `json/` drawing files share the same format:
 
 | Version | Date | Changes |
 |---|---|---|
+| v1.46 | 2026-10-07 | Added `tc3/parkside-annex-locker.tc3`, a close-up of the Level 3 vestibule and containment locker (scenario section 5.2); drawings.json updated |
+| v1.45 | 2026-10-07 | Added Parkside Annex Levels 1-3 (`tc3/parkside-annex-1.tc3`, `-2`, `-3`) for the scenario Are Old Friends Electric; drawings.json updated |
 | v1.44 | 2026-08-19 | Removed created/revised date display from toolbar |
 | v1.43 | 2026-08-19 | Save button renamed from "Save JSON" to "Save TC3" |
 | v1.42 | 2026-08-19 | Fixed `notop`/`nobottom` on rect — `notop` now correctly suppresses the highest world-Y edge, `nobottom` the lowest |

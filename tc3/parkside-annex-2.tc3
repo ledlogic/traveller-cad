@@ -1,0 +1,86 @@
+title: Parkside Annex: Level 2 (The Floor)
+units: m
+world: -45, -27, 45, 27
+grid: 1.5
+wallwidth: 0.3
+wallcolor: #6e2f1e
+
+# Level 2 is the old pilot-plant bay, gutted and rebuilt as an assembly line.
+# Scale: 1 square = 1.5 m. The central shaft is directly under the Level 1 landing.
+
+# ── FOOTPRINT (the original bay) AND ITS ROCK WALLS
+rect: -36, -21, 36, 21
+hatch: -39, 21, 39, 24, 45, 1
+hatch: -39, -24, 39, -21, 45, 1
+hatch: -39, -21, -36, 21, 45, 1
+hatch: 36, -21, 39, 21, 45, 1
+
+# ── OVERHEAD GANTRY CATWALKS (shown ghosted)
+rect: -33, 19.5, 33, 21, nowall
+^opacity: 0.35
+^text: Gantry Catwalk (overhead)
+rect: -33, -21, 33, -19.5, nowall
+^opacity: 0.35
+^text: Gantry Catwalk (overhead)
+
+# ── CENTRAL SHAFT (up to Level 1)
+rect: -3, -3, 3, 3
+^text: Shaft
+
+# ── NORTH CONVEYOR BED AND REFIT CELLS
+rect: -30, 9, 24, 12
+^text: Conveyor Bed
+rect: -30, 12, -18, 18, nobottom
+^text: Cell 1
+rect: -18, 12, -6, 18, nobottom
+^text: Cell 2
+rect: -6, 12, 6, 18, nobottom
+^text: Cell 3
+rect: 6, 12, 18, 18, nobottom
+^text: Cell 4
+
+# ── SOUTH CONVEYOR BED AND REFIT CELLS
+rect: -30, -12, 24, -9
+^text: Conveyor Bed
+rect: -30, -18, -18, -12, notop
+^text: Cell 5
+rect: -18, -18, -6, -12, notop
+^text: Cell 6
+rect: -6, -18, 6, -12, notop
+^text: Cell 7
+rect: 6, -18, 18, -12, notop
+^text: Cell 8
+
+# ── LINE SERVITORS (ovals, 14 of them, working the floor)
+oval: -27.9, 6.1, -26.1, 7.9
+oval: -21.9, 6.1, -20.1, 7.9
+oval: -15.9, 6.1, -14.1, 7.9
+oval: -9.9, 6.1, -8.1, 7.9
+oval: -3.9, 6.1, -2.1, 7.9
+oval: 2.1, 6.1, 3.9, 7.9
+oval: 8.1, 6.1, 9.9, 7.9
+oval: 14.1, 6.1, 15.9, 7.9
+oval: 20.1, 6.1, 21.9, 7.9
+oval: -24.9, -7.9, -23.1, -6.1
+oval: -12.9, -7.9, -11.1, -6.1
+oval: -0.9, -7.9, 0.9, -6.1
+oval: 11.1, -7.9, 12.9, -6.1
+oval: 20.1, -7.9, 21.9, -6.1
+
+# ── CHIP SUB-STATION (far east end, open to the floor on its west side)
+rect: 25.5, -7.5, 36, 7.5, noleft
+label: 25.5, 8.1, 36, 10.6, Chip Sub-Station
+rect: 27, -6, 33, -3
+^text: Chip Racks
+rect: 27, -1.5, 31.5, 1.5
+^text: Cradle
+^text2: panel open
+rect: 27, 3, 33, 6
+^text: Tech Bench
+rect: 33, -1.5, 36, 1.5
+^text: Shaft
+^text2: to Level 3
+
+# ── KEY
+label: -36, -26, -6, -23.5, Ovals = Line Servitors (Appendix D, D.2)
+label: 0, -26, 36, -23.5, Bench = chip swap point (Appendix D, D.2b)

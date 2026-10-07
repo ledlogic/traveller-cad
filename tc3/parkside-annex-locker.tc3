@@ -1,0 +1,64 @@
+title: Parkside Annex: Level 3 Locker (5.2)
+units: m
+world: -15, -17, 15, 12
+grid: 0.75
+wallwidth: 0.15
+wallcolor: #4a1e6e
+
+# Close-up of the vault vestibule and the containment equipment locker (Chapter 5, 5.2).
+# Same orientation as Level 3. Origin here = centre of the vestibule, which is at (9, 0) on Level 3.
+# Scale: grid 0.75 m. The vestibule is 6 m square.
+
+# ── SOLID STRUCTURE AROUND THE VESTIBULE AND PASSAGE
+hatch: -3, -9, 3, -3, 45, 0.6
+hatch: -3, 3, -1.5, 6, 45, 0.6
+hatch: 1.5, 3, 3, 6, 45, 0.6
+hatch: -3, 6, 3, 9, 45, 0.6
+hatch: 3, 3, 12, 9, 45, 0.6
+hatch: 3, -9, 12, -3, 45, 0.6
+
+# ── VAULT INTERIOR (west stub, overgrown stacks)
+rect: -12, -9, -3, 9
+label: -11, 7, -4, 8.7, Vault Interior
+rect: -9, -7.5, -7.5, -1.5
+rect: -9, 1.5, -7.5, 7.5
+hatch: -12, -9, -9.75, 9, 45, 0.5
+hatch: -12, -9, -9.75, 9, -45, 0.5
+
+# ── VESTIBULE
+rect: -3, -3, 3, 3
+^text: Vestibule
+door: -3, -1.5, -3, 1.5
+door: 3, -1.5, 3, 1.5
+
+# ── GUARDIAN PASSAGE (east, toward the shaft landing)
+rect: 3, -3, 12, 3
+^text: Guardian Passage
+
+# ── THE LOCKER ALCOVE (north, sealed)
+rect: -1.5, 3, 1.5, 6
+door: -1.5, 3, 1.5, 3
+^locked
+
+# ── RACKS: three columns of three weapons
+# A (west): stun rifles
+rect: -1.125, 3.375, -0.375, 4.125
+rect: -1.125, 4.125, -0.375, 4.875
+rect: -1.125, 4.875, -0.375, 5.625
+^text: A
+# B (centre): stun shotguns
+rect: -0.375, 3.375, 0.375, 4.125
+rect: -0.375, 4.125, 0.375, 4.875
+rect: -0.375, 4.875, 0.375, 5.625
+^text: B
+# C (east): pulse carbines
+rect: 0.375, 3.375, 1.125, 4.125
+rect: 0.375, 4.125, 1.125, 4.875
+rect: 0.375, 4.875, 1.125, 5.625
+^text: C
+
+# ── KEY
+label: -14, -11.2, 14, -9.9, A: Stun Rifle x3 (50m, 3D, Stun, Zero-G)
+label: -14, -12.8, 14, -11.5, B: Stun Shotgun x3 (10m, 3D, Blast 5, Stun, Zero-G)
+label: -14, -14.4, 14, -13.1, C: Pulse Carbine x3 (50m, 2D, Blast 5, Ion, Zero-G)
+label: -14, -16, 14, -14.7, Alcove door sealed. East door: clean handle (5.1)

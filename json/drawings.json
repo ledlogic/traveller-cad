@@ -59,6 +59,30 @@
       "file": "tc3/pi-building-5.tc3",
       "title": "The Pi Building - Fifth",
       "description": "Governor Krein's barricade command post. His hardened comm suite and authorization codex vault (Appendix A) are here. Bay-side observation gallery gives the top floor its view."
+    },
+    {
+      "id": "parkside-annex-1",
+      "file": "tc3/parkside-annex-1.tc3",
+      "title": "Parkside Annex: Level 1 (Surface / Admin)",
+      "description": "Are Old Friends Electric. Old administrative level: reception, records, offices, guard room, disused personnel airlock (west), manned cargo lock (east), central shaft landing."
+    },
+    {
+      "id": "parkside-annex-2",
+      "file": "tc3/parkside-annex-2.tc3",
+      "title": "Parkside Annex: Level 2 (The Floor)",
+      "description": "Are Old Friends Electric. Gutted pilot-plant bay: conveyor beds, refit cells, gantry catwalks, 14 Line Servitors, the chip sub-station and the service shaft down."
+    },
+    {
+      "id": "parkside-annex-3",
+      "file": "tc3/parkside-annex-3.tc3",
+      "title": "Parkside Annex: Level 3 (The Vault)",
+      "description": "Are Old Friends Electric. Sealed vault: shaft landing, guardian passage with ambush alcoves, vault door, containment locker, overgrown stacks and the archive chamber holding Subject 1106."
+    },
+    {
+      "id": "parkside-annex-locker",
+      "file": "tc3/parkside-annex-locker.tc3",
+      "title": "Parkside Annex: Level 3 Locker (5.2)",
+      "description": "Are Old Friends Electric. Close-up of the vault vestibule and the sealed containment equipment locker: three racks of three stun and ion weapons, the vault door and the vault interior stub."
     }
   ]
 }
