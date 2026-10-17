@@ -1,0 +1,101 @@
+title The Pi Building - Subfloors
+units m
+world -50, -20, 50, 20
+grid 1.5
+wallwidth 0.3
+wallcolor #1e4a6e
+
+# ── SUB FLOORS
+rect -45, -18, 45, 18
+
+# ── WEST INNER CORNERS
+hatch -33.25, 8.25, -26.25, 4.75, 45, 1
+^text s1
+hatch -16.75, 8.25, -9.75, 4.75, 45, 1
+^text s2
+hatch -33.25, -8.25, -26.25, -4.75, 45, 1
+^text s3
+hatch -16.75, -8.25, -9.75, -4.75, 45, 1
+^text s4
+
+# ── EAST INNER CORNERS
+hatch 33.25, 8.25, 26.25, 4.75, 45, 1
+^text s1
+hatch 16.75, 8.25, 9.75, 4.75, 45, 1
+^text s2
+hatch 33.25, -8.25, 26.25, -4.75, 45, 1
+^text s3
+hatch 16.75, -8.25, 9.75, -4.75, 45, 1
+^text s4
+
+# ── WEST TOWER (structural core ghost) ────────────────────────────────
+rect -29.75, -8.25, -13.25, 8.25
+^opacity 0.25
+door -22.5, 8.25, -20.5, 8.25
+^opacity 0.25
+rect -20.375, 1.125, -22.625, -1.125
+^text Elevator Lobby
+door -22.5, 1.125, -20.5, 1.125
+
+# ── EAST TOWER (structural core ghost) ────────────────────────────────
+rect 13.25, -8.25, 29.75, 8.25
+^opacity 0.25
+door 22.5, 8.25, 20.5, 8.25
+^opacity 0.25
+rect 20.375, 1.125, 22.625, -1.125
+^text Elevator Lobby
+door 22.5, 1.125, 20.5, 1.125
+
+# ── NORTH CORNERS
+hatch -45, 18, -41.5, 14.5, 45, 1
+^text c1
+hatch -35, 18, -31.5, 14.5, 45, 1
+^text c2
+hatch -25, 18, -21.5, 14.5, 45, 1
+^text c3
+hatch -15, 18, -11.5, 14.5, 45, 1
+^text c4
+hatch -5, 18, 5, 14.5, 45, 1
+^text c5
+hatch 15, 18, 11.5, 14.5, 45, 1
+^text c6
+hatch 25, 18, 21.5, 14.5, 45, 1
+^text c7
+hatch 35, 18, 31.5, 14.5, 45, 1
+^text c8
+hatch 45, 18, 41.5, 14.5, 45, 1
+^text c9
+
+# ── SOUTH CORNERS
+hatch -45, -18, -41.5, -14.5, 45, 1
+^text c21
+hatch -35, -18, -31.5, -14.5, 45, 1
+^text c22
+hatch -25, -18, -21.5, -14.5, 45, 1
+^text c23
+hatch -15, -18, -11.5, -14.5, 45, 1
+^text c24
+hatch -5, -18, 5, -14.5, 45, 1
+^text c25
+hatch 15, -18, 11.5, -14.5, 45, 1
+^text c26
+hatch 25, -18, 21.5, -14.5, 45, 1
+^text c27
+hatch 35, -18, 31.5, -14.5, 45, 1
+^text c28
+hatch 45, -18, 41.5, -14.5, 45, 1
+^text c29
+
+# ── WEST CORNERS
+hatch -45, 8.25, -41.5, 4.75, 45, 1
+^text w1
+
+hatch -45, -8.25, -41.5, -4.75, 45, 1
+^text w2
+
+# ── EAST CORNERS
+hatch 45, 8.25, 41.5, 4.75, 45, 1
+^text e1
+
+hatch 45, -8.25, 41.5, -4.75, 45, 1
+^text e2
