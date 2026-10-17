@@ -1,12 +1,9 @@
-title The Pi Building - Subfloors
+title The Pi Building - Subfloor
 units m
-world -50, -20, 50, 20
+world -50, -40, 50, 20
 grid 1.5
 wallwidth 0.3
 wallcolor #1e4a6e
-
-# ── SUB FLOORS
-rect -45, -18, 45, 18
 
 # ── WEST INNER CORNERS
 hatch -33.25, 8.25, -26.25, 4.75, 45, 1
@@ -30,21 +27,29 @@ hatch 16.75, -8.25, 9.75, -4.75, 45, 1
 
 # ── WEST TOWER (structural core ghost) ────────────────────────────────
 rect -29.75, -8.25, -13.25, 8.25
-^opacity 0.25
-door -22.5, 8.25, -20.5, 8.25
-^opacity 0.25
+
+door -23, 8.25, -20, 8.25
+
+door -23, -8.25, -20, -8.25
+
 rect -20.375, 1.125, -22.625, -1.125
 ^text Elevator Lobby
 door -22.5, 1.125, -20.5, 1.125
 
+door -22.5, -1.125, -20.5, -1.125
+
 # ── EAST TOWER (structural core ghost) ────────────────────────────────
 rect 13.25, -8.25, 29.75, 8.25
-^opacity 0.25
-door 22.5, 8.25, 20.5, 8.25
-^opacity 0.25
+
+door 23, 8.25, 20, 8.25
+
+door 23, -8.25, 20, -8.25
+
 rect 20.375, 1.125, 22.625, -1.125
 ^text Elevator Lobby
 door 22.5, 1.125, 20.5, 1.125
+
+door 22.5, -1.125, 20.5, -1.125
 
 # ── NORTH CORNERS
 hatch -45, 18, -41.5, 14.5, 45, 1
@@ -65,6 +70,13 @@ hatch 35, 18, 31.5, 14.5, 45, 1
 ^text c8
 hatch 45, 18, 41.5, 14.5, 45, 1
 ^text c9
+
+# ── CENTER CORNERS
+hatch -2, 8.25, 2, 4.75, 45, 1
+^text cr1
+
+hatch -2, -8.25, 2, -4.75, 45, 1
+^text cr2
 
 # ── SOUTH CORNERS
 hatch -45, -18, -41.5, -14.5, 45, 1
@@ -99,3 +111,38 @@ hatch 45, 8.25, 41.5, 4.75, 45, 1
 
 hatch 45, -8.25, 41.5, -4.75, 45, 1
 ^text e2
+
+# ── WEST CORRIDOR
+rect -41.5 -38 -38 8.25
+^text west corridor
+^rotate-text 90
+^notop
+
+door -41.5, 8.25, -38, 8.25
+
+rect -38.1 -38 -29 -35
+^noleft
+^text west ramp
+
+# ── EAST CORRIDOR
+rect 41.5 -38 38 8.25
+^text east corridor
+^rotate-text 90
+
+door 41.5, 8.25, 38, 8.25
+
+rect 38.1 -38 29 -35
+^noleft
+^text east ramp
+
+# ── NORTH CORRIDOR
+rect -41.5 11.75 41.5 8.25
+^text north corridor
+
+# ── SOUTH CORRIDOR
+rect -38 -11.75 38 -8.25
+^text south corridor
+
+door -38, -11.75, -38, -8.25
+
+door 38, -11.75, 38, -8.25

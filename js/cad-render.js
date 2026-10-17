@@ -497,6 +497,7 @@ function drawStructure(s, toScreen, scale, gridSize, wallWidth, docWallColor, el
 
     // Check if any side is suppressed — if so draw sides individually
     if (s.type === 'rect' && (s.noleft || s.noright || s.notop || s.nobottom)){
+      console.log('[notop debug] rect at line', s.lineNum, 'noleft:', s.noleft, 'noright:', s.noright, 'notop:', s.notop, 'nobottom:', s.nobottom);
       const [sx1, sy1] = toScreen(s.x1, s.y1);
       const [sx2, sy2] = toScreen(s.x2, s.y2);
       const left2  = Math.min(sx1, sx2), right2 = Math.max(sx1, sx2);

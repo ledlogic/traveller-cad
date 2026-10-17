@@ -168,11 +168,13 @@ function parseScript(text){
       // a polyroom passes colour, opacity, wall width and staff visibility on to its walls too
       const targets = prev.type === 'polyroom' ? [prev, ...prev.walls] : [prev];
 
-      // ^nowall — suppress outline on the previous shape
-      if (rest.toLowerCase() === 'nowall'){
-        prev.nowall = true;
-        return;
-      }
+      // ^nowall / ^noleft / ^noright / ^notop / ^nobottom — suppress outline sides
+      const restLc = rest.toLowerCase();
+      if (restLc === 'nowall'){   prev.nowall   = true; return; }
+      if (restLc === 'noleft'){   prev.noleft   = true; return; }
+      if (restLc === 'noright'){  prev.noright  = true; return; }
+      if (restLc === 'notop'){    prev.notop    = true; return; }
+      if (restLc === 'nobottom'){ prev.nobottom = true; return; }
 
       // ^locked — marks the previous door as locked; draws a padlock symbol
       if (rest.toLowerCase() === 'locked' || rest.toLowerCase().startsWith('locked')){
