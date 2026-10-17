@@ -255,7 +255,7 @@ function renderCanvas(){
   if (cursorLineNum > 0 && currentDoc.shapes){
     const scriptLines = el.script.value.split('\n');
     const cursorLine = (scriptLines[cursorLineNum - 1] || '').trim();
-    const SHAPE_CMDS = new Set(['rect','oval','semicircle','wall','door','stairs','image','label','text']);
+    const SHAPE_CMDS = new Set(['rect','oval','semicircle','wall','door','stairs','image','label','text','hatch','place','polyroom']);
 
     const isShapeLine = (l) => {
       const key = l.trim().toLowerCase().split(/[\s:]/)[0];
@@ -280,7 +280,7 @@ function renderCanvas(){
     if (targetLineNum !== null){
       const hit = currentDoc.shapes.find(s =>
         s.lineNum === targetLineNum &&
-        ['rect','oval','semicircle','wall','door','stairs','image','hatch'].includes(s.type)
+        ['rect','oval','semicircle','wall','door','stairs','image','hatch','polyroom'].includes(s.type)
       );
       if (hit){
         const [hx1, hy1] = toScreen(hit.x1, hit.y1);
